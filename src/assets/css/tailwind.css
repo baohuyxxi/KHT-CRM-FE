@@ -1,0 +1,180 @@
+/* src/assets/css/tailwind.scss */
+
+/* --- Tailwind --- */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Custom Classes --- */
+
+/* --- Buttons --- */
+.btn-primary {
+  @apply bg-primary text-white font-semibold px-6 py-2 rounded-full hover:bg-accentBlue transition;
+}
+.btn-ocean {
+  @apply bg-gradient-to-r from-primary to-blue-400 
+         text-white font-bold text-sm sm:text-base 
+         px-4 sm:px-6 py-1.5 sm:py-2 rounded-full 
+         hover:from-blue-400 hover:to-blue-600 
+         transition;
+}
+.btn-secondary {
+  @apply bg-gradient-to-r from-secondary to-yellow-400 text-white font-semibold px-6 py-2 rounded-full hover:from-yellow-400 hover:to-secondary transition;
+}
+.btn-outline {
+  @apply border-2 border-primary text-primary font-semibold px-4 py-2 rounded hover:bg-primary hover:text-white transition;
+}
+
+/* --- Cards / Papers --- */
+.card {
+  @apply bg-cardBg border border-cardBorder rounded-xl shadow-card p-4 transition hover:shadow-cardHover;
+}
+
+.card-hover {
+  @apply hover:shadow-cardHover;
+}
+
+/* --- Text --- */
+.text-primary-custom {
+  @apply text-primary font-semibold;
+}
+
+.text-secondary-custom {
+  @apply text-secondary;
+}
+
+.text-muted {
+  @apply text-mutedText;
+}
+
+.text-dark {
+  @apply text-darkText;
+}
+
+/* --- Links --- */
+.link-primary {
+  @apply text-primary font-medium hover:underline;
+}
+
+.link-secondary {
+  @apply text-secondary hover:underline;
+}
+
+/* --- Badges / Labels --- */
+.badge {
+  @apply inline-block px-2 py-1 rounded-full text-white text-xs font-bold;
+}
+
+.badge-success {
+  @apply bg-success;
+}
+
+.badge-error {
+  @apply bg-error;
+}
+
+.badge-warning {
+  @apply bg-warning;
+}
+
+.badge-info {
+  @apply bg-info;
+}
+
+/* --- Inputs / Forms --- */
+.input {
+  @apply border border-cardBorder rounded-lg px-4 py-2 bg-light text-darkText focus:outline-none focus:ring-2 focus:ring-primary transition;
+}
+
+.input-disabled {
+  @apply bg-hover text-mutedText cursor-not-allowed;
+}
+
+/* --- Alerts / Messages --- */
+.alert {
+  @apply px-4 py-3 rounded-lg text-white font-medium;
+}
+
+.alert-success {
+  @apply bg-success;
+}
+
+.alert-error {
+  @apply bg-error;
+}
+
+.alert-warning {
+  @apply bg-warning;
+}
+
+.alert-info {
+  @apply bg-info;
+}
+
+/* --- Utilities --- */
+.hover-light {
+  @apply hover:bg-hover transition;
+}
+
+.rounded-xl-custom {
+  @apply rounded-xl;
+}
+
+.rounded-2xl-custom {
+  @apply rounded-2xl;
+}
+
+/* --- Image Alignment --- */
+.image-style-align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.image-style-align-left {
+  float: left;
+  margin-right: 1rem;
+}
+
+.image-style-align-right {
+  float: right;
+  margin-left: 1rem;
+}
+
+@keyframes progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-progress {
+  animation: progress 1.5s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+.ck-content table {
+  border-collapse: collapse;
+}
+
+.ck-content th,
+.ck-content td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
