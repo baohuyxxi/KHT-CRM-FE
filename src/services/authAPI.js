@@ -26,7 +26,8 @@ export const logout = async () => {
 
 // Đăng xuất tất cả
 export const logoutAll = async () => {
-  await api.post("/auth/logout-all");
+  const refreshToken = localStorage.getItem("refreshToken");
+  await api.post("/auth/logout-all", { refreshToken });
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
 };
