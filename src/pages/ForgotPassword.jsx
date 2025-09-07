@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { sendResetPasswordEmail } from "~/services/adminAPI";
 import logo from "~/assets/images/HongThinhTechnologyServices.png";
 
 export default function ForgotPassword() {
@@ -15,10 +14,7 @@ export default function ForgotPassword() {
     setError("");
     setMessage("");
     try {
-      await sendResetPasswordEmail(email);
-      setMessage(
-        "Chúng tôi đã gửi link đặt lại mật khẩu vào email của bạn. Vui lòng kiểm tra hộp thư."
-      );
+      return;
     } catch (err) {
       setError(err.response?.data?.message || "Gửi thất bại, thử lại sau.");
     } finally {
@@ -32,7 +28,11 @@ export default function ForgotPassword() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link to="/">
-            <img src={logo} alt="Logo" className="mx-auto h-20 sm:h-28 md:h-32" />
+            <img
+              src={logo}
+              alt="Logo"
+              className="mx-auto h-20 sm:h-28 md:h-32"
+            />
           </Link>
           <h2 className="text-2xl sm:text-3xl font-bold mt-4 text-darkText">
             Quên mật khẩu
@@ -45,10 +45,14 @@ export default function ForgotPassword() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <p className="text-red-500 text-sm font-medium text-center">{error}</p>
+            <p className="text-red-500 text-sm font-medium text-center">
+              {error}
+            </p>
           )}
           {message && (
-            <p className="text-green-500 text-sm font-medium text-center">{message}</p>
+            <p className="text-green-500 text-sm font-medium text-center">
+              {message}
+            </p>
           )}
 
           <div className="flex flex-col">
@@ -72,16 +76,10 @@ export default function ForgotPassword() {
           </button>
 
           <div className="flex justify-between mt-3 text-sm sm:text-base">
-            <Link
-              to="/login"
-              className="text-secondary hover:underline"
-            >
+            <Link to="/login" className="text-secondary hover:underline">
               Quay lại đăng nhập
             </Link>
-            <Link
-              to="/"
-              className="text-primary hover:underline"
-            >
+            <Link to="/" className="text-primary hover:underline">
               Trang chủ
             </Link>
           </div>
