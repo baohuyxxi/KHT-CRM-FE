@@ -5,6 +5,10 @@ import DashboardHeader from "./DashboardHeader";
 // Lazy imports (giữ nguyên)
 
 const AccountManager = lazy(() => import("./Layout/AccountManager"));
+const CustomersList = lazy(() => import("./Customers/CustomersList"));
+const CustomerAddNew = lazy(() => import("./Customers/CustomerAddNew"));
+const BusinessList = lazy(() => import("./Business/BusinessList"));
+const BusinessAddNew = lazy(() => import("./Business/BusinessAddNew"));
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +32,13 @@ export default function DashboardLayout() {
           <Suspense fallback={<div></div>}>
             <Routes>
               <Route path="/account" element={<AccountManager />} />
+              <Route path="/customers" element={<CustomersList />} />
+              <Route path="/customers/add" element={<CustomerAddNew />} />
+              <Route path="/business" element={<BusinessList />} />
+              <Route path="/business/add" element={<BusinessAddNew />} />
+              <Route index element={<BusinessList />} />
             </Routes>
+
             <Outlet />
           </Suspense>
         </main>
