@@ -20,8 +20,8 @@ const headerAdminDetail = [
     path: "/business",
   },
   {
-    name: "Cơ hội / Giao dịch",
-    path: "/deals",
+    name: "Đơn hàng",
+    path: "/orders",
   },
   {
     name: "Công việc",

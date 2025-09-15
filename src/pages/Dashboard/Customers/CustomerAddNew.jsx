@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AddCustomer() {
     const [citizenIdError, setCitizenIdError] = useState(false);
     const [emailError, setEmailError] = useState(false);
-
     const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         owner: "",
         citizen_id: "",
@@ -16,12 +16,19 @@ export default function AddCustomer() {
         address: "",
         phone: "",
         email: "",
-        active: true, // thêm trạng thái hoạt động
+        type: "", // phân loại KH
+        active: true,
     });
+
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState("");
 
-    // Chỉ cho nhập số + tối đa 13 ký tự
+    // 🔹 Tạo mã KH tự động khi mở form
+    useEffect(() => {
+        setFormData((prev) => ({ ...prev, owner: "USR001" }));
+    }, []);
+
+    // CCCD chỉ nhập số + tối đa 13
     const handleCitizenIdChange = (e) => {
         const value = e.target.value.replace(/\D/g, "");
         if (value.length <= 13) {
@@ -30,20 +37,20 @@ export default function AddCustomer() {
     };
 
     const handleCitizenIdBlur = () => {
-        if (formData.citizen_id.length !== 13) {
+        if (formData.citizen_id && formData.citizen_id.length !== 13) {
             setCitizenIdError(true);
         } else {
             setCitizenIdError(false);
         }
     };
 
-    // Check email định dạng
+    // Check email
     const handleEmailBlur = () => {
         if (formData.email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             setEmailError(!emailRegex.test(formData.email));
         } else {
-            setEmailError(false); // không nhập thì không báo lỗi
+            setEmailError(false);
         }
     };
 
@@ -57,14 +64,12 @@ export default function AddCustomer() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (citizenIdError || emailError) return;
 
-        if (citizenIdError || emailError) return; // chặn submit khi có lỗi
         setLoading(true);
         setToast("");
-
         try {
-            // Giả lập call API
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            await new Promise((resolve) => setTimeout(resolve, 1200)); // giả lập API
             console.log("Dữ liệu khách hàng:", formData);
             setToast("Khách hàng đã được thêm thành công!");
             setTimeout(() => navigate("/customers"), 1500);
@@ -75,13 +80,10 @@ export default function AddCustomer() {
         }
     };
 
-    // Kiểm tra nút Lưu có disable hay không
+    // Chỉ bắt buộc các trường chính
     const isFormValid =
         formData.owner &&
-        formData.citizen_id.length === 13 &&
-        formData.firstName &&
-        formData.lastName &&
-        formData.gender &&
+        formData.type &&
         formData.phone.match(/^[0-9]{10,11}$/) &&
         !citizenIdError &&
         !emailError;
@@ -98,39 +100,36 @@ export default function AddCustomer() {
                     Quay lại
                 </button>
             </div>
+
             <form
                 onSubmit={handleSubmit}
                 className="bg-white shadow-md rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                {/* Người quản lý + CCCD */}
+                {/* Người quản lý */}
                 <div>
-                    <label className="block mb-1 font-medium">Người quản lý</label>
+                    <label className="block mb-1 font-medium">Mã người quản lý</label>
                     <input
                         type="text"
                         name="owner"
-                        value={formData.owner}
+                        value={"USR001"}
                         onChange={handleChange}
-                        className="w-full border rounded-md p-2"
+                        readOnly
+                        className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
                         required
                     />
                 </div>
+                {/* Người quản lý */}
                 <div>
-                    <label className="block mb-1 font-medium">Số CCCD</label>
+                    <label className="block mb-1 font-medium">Tên người quản lý</label>
                     <input
                         type="text"
-                        name="citizen_id"
-                        value={formData.citizen_id}
-                        onChange={handleCitizenIdChange}
-                        onBlur={handleCitizenIdBlur}
-                        className={`w-full border rounded-md p-2 ${citizenIdError ? "border-red-500" : "border-gray-300"
-                            }`}
-                        maxLength={13}
+                        name="owner"
+                        value={"USR001"}
+                        onChange={handleChange}
+                        readOnly
+                        className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
                         required
-                        placeholder="Nhập 13 số CCCD"
                     />
-                    {citizenIdError && (
-                        <p className="text-red-500 text-sm mt-1">CCCD phải gồm đúng 13 chữ số</p>
-                    )}
                 </div>
 
                 {/* Họ + Tên */}
@@ -157,7 +156,45 @@ export default function AddCustomer() {
                     />
                 </div>
 
-                {/* Giới tính + Ngày sinh */}
+                {/* CCCD (ko bắt buộc) */}
+                <div>
+                    <label className="block mb-1 font-medium">Số CCCD (tùy chọn)</label>
+                    <input
+                        type="text"
+                        name="citizen_id"
+                        value={formData.citizen_id}
+                        onChange={handleCitizenIdChange}
+                        onBlur={handleCitizenIdBlur}
+                        className={`w-full border rounded-md p-2 ${citizenIdError ? "border-red-500" : "border-gray-300"
+                            }`}
+                        maxLength={13}
+                        placeholder="Nhập 13 số CCCD"
+                    />
+                    {citizenIdError && (
+                        <p className="text-red-500 text-sm mt-1">
+                            CCCD phải gồm đúng 13 chữ số
+                        </p>
+                    )}
+                </div>
+
+                {/* Phân loại khách hàng */}
+                <div>
+                    <label className="block mb-1 font-medium">Loại khách hàng</label>
+                    <select
+                        name="type"
+                        value={formData.type}
+                        onChange={handleChange}
+                        className="w-full border rounded-md p-2"
+                        required
+                    >
+                        <option value="">-- Chọn loại --</option>
+                        <option value="Thị trường">Thị trường</option>
+                        <option value="Tiềm năng">Tiềm năng</option>
+                        <option value="Đã là KH">Đã là khách hàng</option>
+                    </select>
+                </div>
+
+                {/* Giới tính + Ngày sinh (tùy chọn) */}
                 <div>
                     <label className="block mb-1 font-medium">Giới tính</label>
                     <select
@@ -165,7 +202,6 @@ export default function AddCustomer() {
                         value={formData.gender}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     >
                         <option value="">-- Giới tính --</option>
                         <option value="Nam">Nam</option>
@@ -184,7 +220,7 @@ export default function AddCustomer() {
                     />
                 </div>
 
-                {/* Địa chỉ */}
+                {/* Địa chỉ (tùy chọn) */}
                 <div className="col-span-2">
                     <label className="block mb-1 font-medium">Địa chỉ</label>
                     <input
@@ -196,7 +232,7 @@ export default function AddCustomer() {
                     />
                 </div>
 
-                {/* Số điện thoại + Email */}
+                {/* Số điện thoại (bắt buộc) + Email (tùy chọn) */}
                 <div>
                     <label className="block mb-1 font-medium">Số điện thoại</label>
                     <input
@@ -210,7 +246,7 @@ export default function AddCustomer() {
                     />
                 </div>
                 <div>
-                    <label className="block mb-1 font-medium">Email (không bắt buộc)</label>
+                    <label className="block mb-1 font-medium">Email (tùy chọn)</label>
                     <input
                         type="email"
                         name="email"
@@ -226,7 +262,7 @@ export default function AddCustomer() {
                     )}
                 </div>
 
-                {/* Trạng thái hoạt động */}
+                {/* Trạng thái */}
                 <div className="col-span-2 flex items-center gap-2">
                     <input
                         type="checkbox"
@@ -238,6 +274,7 @@ export default function AddCustomer() {
                     <label className="font-medium">Đang hoạt động</label>
                 </div>
 
+                {/* Buttons */}
                 <div className="col-span-2 flex justify-end gap-2">
                     <button
                         type="button"
@@ -250,8 +287,8 @@ export default function AddCustomer() {
                     <button
                         type="submit"
                         className={`px-6 py-2 rounded-lg flex items-center gap-2 ${isFormValid
-                                ? "bg-blue-500 text-white hover:bg-blue-600"
-                                : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            ? "bg-blue-500 text-white hover:bg-blue-600"
+                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
                             }`}
                         disabled={loading || !isFormValid}
                     >

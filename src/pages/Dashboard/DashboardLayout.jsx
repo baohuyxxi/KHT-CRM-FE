@@ -9,6 +9,8 @@ const CustomersList = lazy(() => import("./Customers/CustomersList"));
 const CustomerAddNew = lazy(() => import("./Customers/CustomerAddNew"));
 const BusinessList = lazy(() => import("./Business/BusinessList"));
 const BusinessAddNew = lazy(() => import("./Business/BusinessAddNew"));
+const OrderList = lazy(() => import("./Order/CustomerUsage"));
+const AddProduct = lazy(() => import("./Order/AddProduct"));
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +38,8 @@ export default function DashboardLayout() {
               <Route path="/customers/add" element={<CustomerAddNew />} />
               <Route path="/business" element={<BusinessList />} />
               <Route path="/business/add" element={<BusinessAddNew />} />
+              <Route path="/orders" element={<OrderList />} />
+              <Route path="/orders/product" element={<AddProduct />} />
               <Route index element={<BusinessList />} />
             </Routes>
 
