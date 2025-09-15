@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
-import AuthRoute from "~/components/AuthRoute/AuthRoute";
+import AuthRoute from "~/components/AuthRoute";
 
 const Login = lazy(() => import("../pages/Login"));
 const DashboardLayout = lazy(() =>
