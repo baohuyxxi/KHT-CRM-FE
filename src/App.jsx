@@ -1,5 +1,5 @@
 import Auth from "./routers/Auth";
-import ScrollToTop from "~/components/ScrollToTop/ScrollToTop";
+import ScrollToTop from "~/components/ScrollToTop";
 import { LoadingProvider } from "./context/LoadingContext";
 import { Route, Routes } from "react-router-dom";
 

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { login } from "~/services/authAPI";
+import { setCredentials } from "~/redux/slices/authSlice";
 import logo from "~/assets/images/HongThinhTechnologyServices.png";
 import { globalLoading } from "~/context/LoadingContext";
 
@@ -9,20 +11,33 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    globalLoading(true, "Đang đăng nhập...");
-    try {
-      const res = await login(email, password);
-      navigate("/");
-    } catch (err) {
-      setError(err.response?.data?.message || "Đăng nhập thất bại");
-    } finally {
-      globalLoading(false);
-    }
-  };
+  e.preventDefault();
+  setError("");
+  globalLoading(true, "Đang đăng nhập...");
+
+  try {
+    const data = await login(email, password); 
+    // data = { accessToken, refreshToken, user }
+
+    // Lưu Redux
+    dispatch(setCredentials(data));
+
+    // Lưu localStorage
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    navigate("/");
+  } catch (err) {
+    setError(err.response?.data?.message || "Đăng nhập thất bại");
+  } finally {
+    globalLoading(false);
+  }
+};
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
