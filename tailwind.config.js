@@ -8,7 +8,8 @@ export default {
         poppins: ["Poppins", "sans-serif"],
       },
       colors: {
-        primary: "#2563EB", // Xanh dương (chủ đạo)
+        primary: "#0866FF", // Xanh dương (chủ đạo)
+        primaryDark: "#0074BD",
         secondary: "#F59E0B", // Cam / vàng (CTA, nhấn mạnh)
         light: "#F9FAFB", // Nền chính sáng
         darkText: "#111827", // Text chính

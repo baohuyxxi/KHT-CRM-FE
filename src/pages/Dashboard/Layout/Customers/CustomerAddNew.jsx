@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { createCustomer, getCustomerById } from "~/services/customerAPI";
 
 export default function AddCustomer() {
     const [citizenIdError, setCitizenIdError] = useState(false);
     const [emailError, setEmailError] = useState(false);
+    const [nameUser, setNameUser] = useState("");
     const navigate = useNavigate();
+    const [mode, setMode] = useState("add"); // 'add' hoặc 'edit'
+    const { id } = useParams();
+    const location = useLocation();
 
     const [formData, setFormData] = useState({
         owner: "",
-        citizen_id: "",
+        citizenId: "",
         firstName: "",
         lastName: "",
         dob: "",
@@ -16,28 +21,64 @@ export default function AddCustomer() {
         address: "",
         phone: "",
         email: "",
-        type: "", // phân loại KH
-        active: true,
+        customerType: "",
+        active: true
     });
 
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState("");
 
+    const fetchCustomerById = async (id) => {
+        try {
+            setLoading(true);
+            const response = await getCustomerById(id);
+            console.log(response.data);
+            if (response.data && response.data.success) {
+                const customer = response.data.data;
+                setFormData({
+                    owner: customer.owner || "",
+                    citizenId: customer.citizenId || "",
+                    firstName: customer.firstName || "",
+                    lastName: customer.lastName || "",
+                    dob: customer.dob ? customer.dob.split("T")[0] : "",
+                    gender: customer.gender || "",
+                    address: customer.address || "",
+                    phone: customer.phone || "",
+                    email: customer.email || "",
+                    customerType: customer.customerType || "",
+                    active: customer.active || true
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching customer:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
     // 🔹 Tạo mã KH tự động khi mở form
     useEffect(() => {
-        setFormData((prev) => ({ ...prev, owner: "USR001" }));
+        if (id && location.state && location.state.id) {
+            setMode("edit");
+            fetchCustomerById(location?.state.id);
+        } else {
+            const user = JSON.parse(localStorage.getItem("user"));
+            setFormData((prev) => ({ ...prev, owner: user._id }));
+            setNameUser(user.name);
+        }
     }, []);
 
     // CCCD chỉ nhập số + tối đa 13
     const handleCitizenIdChange = (e) => {
         const value = e.target.value.replace(/\D/g, "");
         if (value.length <= 13) {
-            setFormData({ ...formData, citizen_id: value });
+            setFormData({ ...formData, citizenId: value });
         }
     };
 
     const handleCitizenIdBlur = () => {
-        if (formData.citizen_id && formData.citizen_id.length !== 13) {
+        if (formData.citizenId && formData.citizenId.length !== 13) {
             setCitizenIdError(true);
         } else {
             setCitizenIdError(false);
@@ -63,16 +104,21 @@ export default function AddCustomer() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (citizenIdError || emailError) return;
-
+        e.preventDefault(); // tránh reload form mặc định
         setLoading(true);
         setToast("");
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1200)); // giả lập API
-            console.log("Dữ liệu khách hàng:", formData);
-            setToast("Khách hàng đã được thêm thành công!");
-            setTimeout(() => navigate("/customers"), 1500);
+            if (mode === "add") {
+                const res = await createCustomer(formData);
+                if (res && res.data && res.data.success) {
+                    setToast("Khách hàng đã được thêm thành công!");
+                    setTimeout(() => navigate("/customers"), 1500);
+                } else {
+                    setToast("Thêm khách hàng thất bại, vui lòng thử lại!");
+                }
+            } else {
+                alert("Chức năng chỉnh sửa đang được phát triển!");
+            }   
         } catch (error) {
             setToast("Có lỗi xảy ra, vui lòng thử lại!");
         } finally {
@@ -83,7 +129,8 @@ export default function AddCustomer() {
     // Chỉ bắt buộc các trường chính
     const isFormValid =
         formData.owner &&
-        formData.type &&
+        formData.customerType &&
+        formData.gender &&
         formData.phone.match(/^[0-9]{10,11}$/) &&
         !citizenIdError &&
         !emailError;
@@ -105,14 +152,17 @@ export default function AddCustomer() {
                 onSubmit={handleSubmit}
                 className="bg-white shadow-md rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                {/* Người quản lý */}
+                <h2 className="col-span-2 text-xl font-bold mb-4">
+                    {mode === "add" ? "Thêm khách hàng mới" : "Chỉnh sửa khách hàng"}
+                </h2>
+                {/* Người quản 
+                 */}
                 <div>
                     <label className="block mb-1 font-medium">Mã người quản lý</label>
                     <input
                         type="text"
                         name="owner"
-                        value={"USR001"}
-                        onChange={handleChange}
+                        value={formData.owner}
                         readOnly
                         className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
                         required
@@ -124,11 +174,9 @@ export default function AddCustomer() {
                     <input
                         type="text"
                         name="owner"
-                        value={"USR001"}
-                        onChange={handleChange}
+                        value={nameUser}
                         readOnly
                         className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
-                        required
                     />
                 </div>
 
@@ -141,7 +189,6 @@ export default function AddCustomer() {
                         value={formData.firstName}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     />
                 </div>
                 <div>
@@ -152,7 +199,6 @@ export default function AddCustomer() {
                         value={formData.lastName}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     />
                 </div>
 
@@ -162,7 +208,7 @@ export default function AddCustomer() {
                     <input
                         type="text"
                         name="citizen_id"
-                        value={formData.citizen_id}
+                        value={formData.citizenId}
                         onChange={handleCitizenIdChange}
                         onBlur={handleCitizenIdBlur}
                         className={`w-full border rounded-md p-2 ${citizenIdError ? "border-red-500" : "border-gray-300"
@@ -181,16 +227,15 @@ export default function AddCustomer() {
                 <div>
                     <label className="block mb-1 font-medium">Loại khách hàng</label>
                     <select
-                        name="type"
-                        value={formData.type}
+                        name="customerType"
+                        value={formData.customerType}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     >
                         <option value="">-- Chọn loại --</option>
                         <option value="Thị trường">Thị trường</option>
                         <option value="Tiềm năng">Tiềm năng</option>
-                        <option value="Đã là KH">Đã là khách hàng</option>
+                        <option value="Đã là khách hàng">Đã là khách hàng</option>
                     </select>
                 </div>
 
@@ -314,7 +359,7 @@ export default function AddCustomer() {
                                 ></path>
                             </svg>
                         )}
-                        {loading ? "Đang lưu..." : "Lưu khách hàng"}
+                        {loading ? "Đang lưu..." : (mode === "add" ? "Thêm khách hàng" : "Lưu thay đổi")}
                     </button>
                 </div>
             </form>

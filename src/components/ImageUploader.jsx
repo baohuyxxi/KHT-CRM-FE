@@ -1,6 +1,6 @@
 // src/components/ImageUploader/ImageUploader.jsx
 import React, { useRef } from "react";
-import EditableImage from "../EditableImage/EditableImage";
+import EditableImage from "./EditableImage";
 import { X } from "lucide-react";
 
 export default function ImageUploader({

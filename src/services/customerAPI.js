@@ -1,7 +1,7 @@
 import api from "./api";
 
 export const createCustomer = (data) => {
-    return api.post('/customers', data);
+    return api.post('/customers/add', data);
 }
 
 export const getCustomers = () => {

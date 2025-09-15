@@ -18,7 +18,7 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
 
             {/* Tên KH */}
             <td className="p-2 border truncate" title={`${c.lastName || ""} ${c.firstName || ""}`}>
-                {`${c.lastName || ""} ${c.firstName || ""}`}
+                {`${c.lastName || ""} ${c.firstName || ""}`.trim() || "-"}
             </td>
 
             {/* Doanh nghiệp / Hộ KD */}

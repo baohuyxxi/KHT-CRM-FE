@@ -47,7 +47,7 @@ export default function CustomerList() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  const handleEdit = (id) => alert(`Chỉnh sửa khách hàng có id: ${id}`);
+  const handleEdit = (id) => navigate(`/customers/edit/${id}`, { state: { id: id } });
   const handleDelete = (id) => {
     if (confirm("Bạn có chắc muốn xóa khách hàng này?")) {
       setCustomers(customers.filter((c) => c.cusId !== id));
