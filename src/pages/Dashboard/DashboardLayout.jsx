@@ -7,6 +7,13 @@ import { useSelector } from "react-redux";
 
 // Lazy imports (ví dụ, có thể import động theo path)
 const AccountManager = lazy(() => import("./Layout/AccountManager"));
+const CustomersList = lazy(() => import("./Layout/Customers/CustomersList"));
+const CustomerAddNew = lazy(() => import("./Layout/Customers/CustomerAddNew"));
+const BusinessList = lazy(() => import("./Layout/Business/BusinessList"));
+const BusinessAddNew = lazy(() => import("./Layout/Business/BusinessAddNew"));
+const OrderList = lazy(() => import("./Layout/Order/CustomerUsage"));
+const AddProduct = lazy(() => import("./Layout/Order/AddProduct"));
+
 //Quản lý nhân viên
 const EmployeeManager = lazy(() => import("./Layout/EmployeeManager"));
 
@@ -25,6 +32,13 @@ export default function DashboardLayout() {
   const componentMap = {
     "/account": AccountManager,
     "/employees": EmployeeManager,
+    "/customers": CustomersList,
+    "/customers/add": CustomerAddNew,
+    "/customers/edit/:id": CustomerAddNew,
+    "/business": BusinessList,
+    "/business/add": BusinessAddNew,
+    "/orders": OrderList,
+    "/orders/product": AddProduct,
   };
 
   return (
@@ -45,6 +59,16 @@ export default function DashboardLayout() {
         <main className="flex-1 bg-gray-100 overflow-y-auto">
           <Suspense fallback={<div>Loading...</div>}>
             <Routes>
+
+              {/* <Route path="/account" element={<AccountManager />} />
+              <Route path="/customers" element={<CustomersList />} />
+              <Route path="/customers/add" element={<CustomerAddNew />} />
+              <Route path="/business" element={<BusinessList />} />
+              <Route path="/business/add" element={<BusinessAddNew />} />
+              <Route path="/orders" element={<OrderList />} />
+              <Route path="/orders/product" element={<AddProduct />} />
+              <Route index element={<BusinessList />} /> */}
+
               {accessibleRoutes.map((route) => {
                 const Component = componentMap[route.path];
                 if (!Component) return null;

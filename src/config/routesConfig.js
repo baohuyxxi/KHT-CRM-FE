@@ -20,11 +20,32 @@ const routesConfig = [
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
+    name: "Khách hàng",
+    path: "/customers/add",
+    icon: "MdGroup",
+    showInSidebar: false,
+    // ❌ không cần roles => tất cả roles đều thấy
+  },
+  {
+    name: "Khách hàng",
+    path: "/customers/edit/:id",
+    icon: "MdGroup",
+    showInSidebar: false,
+    // ❌ không cần roles => tất cả roles đều thấy
+  },
+  {
     name: "Doanh nghiệp",
     path: "/business",
     icon: "MdBusiness",
     showInSidebar: true,
     // ❌ không cần roles => tất cả roles đều thấy
+  },
+  {
+    name: "Đơn hàng",
+    path: "/orders",
+    icon: "MdAssignment",
+    showInSidebar: true,
+
   },
   {
     name: "Công việc",
@@ -38,14 +59,14 @@ const routesConfig = [
     path: "/reports",
     icon: "MdBarChart",
     showInSidebar: true,
- 
+
   },
   {
     name: "Cài đặt",
     path: "/settings",
     icon: "MdSettings",
     showInSidebar: true,
- 
+
   },
   {
     name: "Quản lý nhân viên",
