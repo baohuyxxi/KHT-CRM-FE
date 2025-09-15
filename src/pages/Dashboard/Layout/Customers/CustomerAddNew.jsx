@@ -1,14 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { createCustomer, getCustomerById } from "~/services/customerAPI";
 
 export default function AddCustomer() {
     const [citizenIdError, setCitizenIdError] = useState(false);
     const [emailError, setEmailError] = useState(false);
-
+    const [nameUser, setNameUser] = useState("");
     const navigate = useNavigate();
+    const [mode, setMode] = useState("add"); // 'add' hoặc 'edit'
+    const { id } = useParams();
+    const location = useLocation();
+
     const [formData, setFormData] = useState({
         owner: "",
-        citizen_id: "",
+        citizenId: "",
         firstName: "",
         lastName: "",
         dob: "",
@@ -16,34 +21,77 @@ export default function AddCustomer() {
         address: "",
         phone: "",
         email: "",
-        active: true, // thêm trạng thái hoạt động
+        customerType: "",
+        active: true
     });
+
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState("");
 
-    // Chỉ cho nhập số + tối đa 13 ký tự
+    const fetchCustomerById = async (id) => {
+        try {
+            setLoading(true);
+            const response = await getCustomerById(id);
+            console.log(response.data);
+            if (response.data && response.data.success) {
+                const customer = response.data.data;
+                setFormData({
+                    owner: customer.owner || "",
+                    citizenId: customer.citizenId || "",
+                    firstName: customer.firstName || "",
+                    lastName: customer.lastName || "",
+                    dob: customer.dob ? customer.dob.split("T")[0] : "",
+                    gender: customer.gender || "",
+                    address: customer.address || "",
+                    phone: customer.phone || "",
+                    email: customer.email || "",
+                    customerType: customer.customerType || "",
+                    active: customer.active || true
+                });
+            }
+        } catch (error) {
+            console.error("Error fetching customer:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    // 🔹 Tạo mã KH tự động khi mở form
+    useEffect(() => {
+        if (id && location.state && location.state.id) {
+            setMode("edit");
+            fetchCustomerById(location?.state.id);
+        } else {
+            const user = JSON.parse(localStorage.getItem("user"));
+            setFormData((prev) => ({ ...prev, owner: user._id }));
+            setNameUser(user.name);
+        }
+    }, []);
+
+    // CCCD chỉ nhập số + tối đa 13
     const handleCitizenIdChange = (e) => {
         const value = e.target.value.replace(/\D/g, "");
         if (value.length <= 13) {
-            setFormData({ ...formData, citizen_id: value });
+            setFormData({ ...formData, citizenId: value });
         }
     };
 
     const handleCitizenIdBlur = () => {
-        if (formData.citizen_id.length !== 13) {
+        if (formData.citizenId && formData.citizenId.length !== 13) {
             setCitizenIdError(true);
         } else {
             setCitizenIdError(false);
         }
     };
 
-    // Check email định dạng
+    // Check email
     const handleEmailBlur = () => {
         if (formData.email) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             setEmailError(!emailRegex.test(formData.email));
         } else {
-            setEmailError(false); // không nhập thì không báo lỗi
+            setEmailError(false);
         }
     };
 
@@ -56,18 +104,21 @@ export default function AddCustomer() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        if (citizenIdError || emailError) return; // chặn submit khi có lỗi
+        e.preventDefault(); // tránh reload form mặc định
         setLoading(true);
         setToast("");
-
         try {
-            // Giả lập call API
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            console.log("Dữ liệu khách hàng:", formData);
-            setToast("Khách hàng đã được thêm thành công!");
-            setTimeout(() => navigate("/customers"), 1500);
+            if (mode === "add") {
+                const res = await createCustomer(formData);
+                if (res && res.data && res.data.success) {
+                    setToast("Khách hàng đã được thêm thành công!");
+                    setTimeout(() => navigate("/customers"), 1500);
+                } else {
+                    setToast("Thêm khách hàng thất bại, vui lòng thử lại!");
+                }
+            } else {
+                alert("Chức năng chỉnh sửa đang được phát triển!");
+            }   
         } catch (error) {
             setToast("Có lỗi xảy ra, vui lòng thử lại!");
         } finally {
@@ -75,12 +126,10 @@ export default function AddCustomer() {
         }
     };
 
-    // Kiểm tra nút Lưu có disable hay không
+    // Chỉ bắt buộc các trường chính
     const isFormValid =
         formData.owner &&
-        formData.citizen_id.length === 13 &&
-        formData.firstName &&
-        formData.lastName &&
+        formData.customerType &&
         formData.gender &&
         formData.phone.match(/^[0-9]{10,11}$/) &&
         !citizenIdError &&
@@ -98,39 +147,37 @@ export default function AddCustomer() {
                     Quay lại
                 </button>
             </div>
+
             <form
                 onSubmit={handleSubmit}
                 className="bg-white shadow-md rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                {/* Người quản lý + CCCD */}
+                <h2 className="col-span-2 text-xl font-bold mb-4">
+                    {mode === "add" ? "Thêm khách hàng mới" : "Chỉnh sửa khách hàng"}
+                </h2>
+                {/* Người quản 
+                 */}
                 <div>
-                    <label className="block mb-1 font-medium">Người quản lý</label>
+                    <label className="block mb-1 font-medium">Mã người quản lý</label>
                     <input
                         type="text"
                         name="owner"
                         value={formData.owner}
-                        onChange={handleChange}
-                        className="w-full border rounded-md p-2"
+                        readOnly
+                        className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
                         required
                     />
                 </div>
+                {/* Người quản lý */}
                 <div>
-                    <label className="block mb-1 font-medium">Số CCCD</label>
+                    <label className="block mb-1 font-medium">Tên người quản lý</label>
                     <input
                         type="text"
-                        name="citizen_id"
-                        value={formData.citizen_id}
-                        onChange={handleCitizenIdChange}
-                        onBlur={handleCitizenIdBlur}
-                        className={`w-full border rounded-md p-2 ${citizenIdError ? "border-red-500" : "border-gray-300"
-                            }`}
-                        maxLength={13}
-                        required
-                        placeholder="Nhập 13 số CCCD"
+                        name="owner"
+                        value={nameUser}
+                        readOnly
+                        className="w-full border rounded-md p-2 bg-gray-100 cursor-not-allowed"
                     />
-                    {citizenIdError && (
-                        <p className="text-red-500 text-sm mt-1">CCCD phải gồm đúng 13 chữ số</p>
-                    )}
                 </div>
 
                 {/* Họ + Tên */}
@@ -142,7 +189,6 @@ export default function AddCustomer() {
                         value={formData.firstName}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     />
                 </div>
                 <div>
@@ -153,11 +199,47 @@ export default function AddCustomer() {
                         value={formData.lastName}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     />
                 </div>
 
-                {/* Giới tính + Ngày sinh */}
+                {/* CCCD (ko bắt buộc) */}
+                <div>
+                    <label className="block mb-1 font-medium">Số CCCD (tùy chọn)</label>
+                    <input
+                        type="text"
+                        name="citizen_id"
+                        value={formData.citizenId}
+                        onChange={handleCitizenIdChange}
+                        onBlur={handleCitizenIdBlur}
+                        className={`w-full border rounded-md p-2 ${citizenIdError ? "border-red-500" : "border-gray-300"
+                            }`}
+                        maxLength={13}
+                        placeholder="Nhập 13 số CCCD"
+                    />
+                    {citizenIdError && (
+                        <p className="text-red-500 text-sm mt-1">
+                            CCCD phải gồm đúng 13 chữ số
+                        </p>
+                    )}
+                </div>
+
+                {/* Phân loại khách hàng */}
+                <div>
+                    <label className="block mb-1 font-medium">Loại khách hàng</label>
+                    <select
+                        name="customerType"
+                        value={formData.customerType}
+                        onChange={handleChange}
+                        className="w-full border rounded-md p-2"
+                    >
+                        <option value="">-- Chọn loại --</option>
+                        <option value="Thị trường">Thị trường</option>
+                        <option value="Tiềm năng">Tiềm năng</option>
+                        <option value="Đã là khách hàng">Đã là khách hàng</option>
+                    </select>
+                </div>
+
+                {/* Giới tính + Ngày sinh (tùy chọn) */}
                 <div>
                     <label className="block mb-1 font-medium">Giới tính</label>
                     <select
@@ -165,7 +247,6 @@ export default function AddCustomer() {
                         value={formData.gender}
                         onChange={handleChange}
                         className="w-full border rounded-md p-2"
-                        required
                     >
                         <option value="">-- Giới tính --</option>
                         <option value="Nam">Nam</option>
@@ -184,7 +265,7 @@ export default function AddCustomer() {
                     />
                 </div>
 
-                {/* Địa chỉ */}
+                {/* Địa chỉ (tùy chọn) */}
                 <div className="col-span-2">
                     <label className="block mb-1 font-medium">Địa chỉ</label>
                     <input
@@ -196,7 +277,7 @@ export default function AddCustomer() {
                     />
                 </div>
 
-                {/* Số điện thoại + Email */}
+                {/* Số điện thoại (bắt buộc) + Email (tùy chọn) */}
                 <div>
                     <label className="block mb-1 font-medium">Số điện thoại</label>
                     <input
@@ -210,7 +291,7 @@ export default function AddCustomer() {
                     />
                 </div>
                 <div>
-                    <label className="block mb-1 font-medium">Email (không bắt buộc)</label>
+                    <label className="block mb-1 font-medium">Email (tùy chọn)</label>
                     <input
                         type="email"
                         name="email"
@@ -226,7 +307,7 @@ export default function AddCustomer() {
                     )}
                 </div>
 
-                {/* Trạng thái hoạt động */}
+                {/* Trạng thái */}
                 <div className="col-span-2 flex items-center gap-2">
                     <input
                         type="checkbox"
@@ -238,6 +319,7 @@ export default function AddCustomer() {
                     <label className="font-medium">Đang hoạt động</label>
                 </div>
 
+                {/* Buttons */}
                 <div className="col-span-2 flex justify-end gap-2">
                     <button
                         type="button"
@@ -250,8 +332,8 @@ export default function AddCustomer() {
                     <button
                         type="submit"
                         className={`px-6 py-2 rounded-lg flex items-center gap-2 ${isFormValid
-                                ? "bg-blue-500 text-white hover:bg-blue-600"
-                                : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                            ? "bg-blue-500 text-white hover:bg-blue-600"
+                            : "bg-gray-300 text-gray-600 cursor-not-allowed"
                             }`}
                         disabled={loading || !isFormValid}
                     >
@@ -277,7 +359,7 @@ export default function AddCustomer() {
                                 ></path>
                             </svg>
                         )}
-                        {loading ? "Đang lưu..." : "Lưu khách hàng"}
+                        {loading ? "Đang lưu..." : (mode === "add" ? "Thêm khách hàng" : "Lưu thay đổi")}
                     </button>
                 </div>
             </form>
