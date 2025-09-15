@@ -20,6 +20,13 @@ const routesConfig = [
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
+    name: "Doanh nghiệp",
+    path: "/business",
+    icon: "MdBusiness",
+    showInSidebar: true,
+    // ❌ không cần roles => tất cả roles đều thấy
+  },
+  {
     name: "Công việc",
     path: "/tasks",
     icon: "MdAssignment",
