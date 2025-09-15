@@ -8,7 +8,7 @@ import { useSelector } from "react-redux";
 // Lazy imports (ví dụ, có thể import động theo path)
 const AccountManager = lazy(() => import("./Layout/AccountManager"));
 //Quản lý nhân viên
-const EmployeeManager = lazy(() => import("./Layout/EmployeeManager"));
+const EmployeeManager = lazy(() => import("./Layout/EmployeeManager/EmployeeManager"));
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
