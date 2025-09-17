@@ -52,7 +52,7 @@ export default function EmployeeManager() {
     <div className="p-6 space-y-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <h2 className="text-2xl font-bold">Quản lý nhân viên</h2>
+     
         <button
           onClick={() => setShowModal(true)}
           className="bg-primary text-white px-4 py-2 rounded hover:bg-primaryDark transition"

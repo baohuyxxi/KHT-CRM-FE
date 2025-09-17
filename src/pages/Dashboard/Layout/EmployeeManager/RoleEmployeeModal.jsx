@@ -1,93 +1,80 @@
 import React, { useState, useEffect } from "react";
-import { getPermission } from "~/services/employee"; // API lấy permissions hiện tại
+import CheckboxTree from "react-checkbox-tree";
+import "react-checkbox-tree/lib/react-checkbox-tree.css";
+import { getPermission } from "~/services/employee";
+import { permissionTree } from "~/mock/permissionTree";
 
-export default function RoleEmployeeModal({ employee, allRoles = [], onClose, onSave }) {
-  const [selectedRole, setSelectedRole] = useState(employee?.role || "");
-  const [permissions, setPermissions] = useState([]);
+export default function RoleEmployeeModal({ employee, onClose, onSave }) {
+  const [checked, setChecked] = useState([]);
+  const [expanded, setExpanded] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load permissions của user khi modal mở
+  // Load quyền từ BE
   useEffect(() => {
     if (!employee?._id) return;
-
     setLoading(true);
     getPermission(employee._id)
       .then((res) => {
-        setPermissions(res.data || []);
+        setChecked(res.data || []); // tick quyền đã có
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false));
   }, [employee]);
 
-  // Khi role thay đổi, tự động cập nhật permissions theo role
-  useEffect(() => {
-    const roleData = allRoles.find((r) => r.name === selectedRole);
-    if (roleData?.permissions) setPermissions(roleData.permissions);
-  }, [selectedRole, allRoles]);
-
-  const togglePermission = (perm) => {
-    setPermissions((prev) =>
-      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
-    );
-  };
-
   const handleSave = () => {
-    onSave({ ...employee, role: selectedRole, permissions });
+    onSave({ ...employee, permissions: checked });
     onClose();
   };
 
   if (!employee) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded w-96 max-h-[80vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Cấp quyền nhân viên</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+  <div className="bg-white p-8 rounded-2xl w-[700px] h-[600px] shadow-xl flex flex-col">
+    <h3 className="text-2xl font-bold mb-6 text-gray-900">
+      Cấp quyền nhân viên
+    </h3>
 
-        <label className="block mb-2 font-medium">Chọn vai trò:</label>
-        <select
-          className="w-full mb-4 border px-3 py-2 rounded"
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-        >
-          {allRoles.map((role) => (
-            <option key={role._id} value={role.name}>
-              {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
-            </option>
-          ))}
-        </select>
-
-        <label className="block mb-2 font-medium">Phân quyền:</label>
-        <div className="mb-4 grid grid-cols-1 gap-1 max-h-48 overflow-y-auto border p-2 rounded">
-          {loading ? (
-            <div className="text-center text-sm text-gray-500">Đang tải...</div>
-          ) : permissions.length === 0 ? (
-            <div className="text-center text-sm text-gray-500">Không có quyền</div>
-          ) : (
-            permissions.map((perm) => (
-              <label key={perm} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={permissions.includes(perm)}
-                  onChange={() => togglePermission(perm)}
-                />
-                <span className="text-sm">{perm}</span>
-              </label>
-            ))
-          )}
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 border rounded">
-            Hủy
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-primary text-white rounded hover:bg-primaryDark"
-          >
-            Lưu
-          </button>
-        </div>
-      </div>
+    {/* Nội dung scroll */}
+    <div className="flex-1 overflow-y-auto border rounded-lg p-4 bg-gray-50 text-lg">
+      {loading ? (
+        <div className="text-center text-gray-500">Đang tải...</div>
+      ) : (
+        <CheckboxTree
+          nodes={permissionTree}
+          checked={checked}
+          expanded={expanded}
+          onCheck={(c) => setChecked(c)}
+          onExpand={(e) => setExpanded(e)}
+          iconsClass="fa5"
+          icons={{
+            check: <span className="text-sky-500">✔</span>,
+            uncheck: <span className="text-sky-300">○</span>,
+            halfCheck: <span className="text-sky-400">◐</span>,
+            expandClose: <span className="text-gray-500">▶</span>,
+            expandOpen: <span className="text-gray-500">▼</span>,
+          }}
+        />
+      )}
     </div>
+
+    {/* Footer nút bấm */}
+    <div className="flex justify-end gap-3 mt-6">
+      <button
+        onClick={onClose}
+        className="px-5 py-2.5 border rounded-lg text-gray-700 hover:bg-gray-100 text-lg"
+      >
+        Hủy
+      </button>
+      <button
+        onClick={handleSave}
+        className="px-5 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 text-lg"
+      >
+        Lưu
+      </button>
+    </div>
+  </div>
+</div>
+
   );
 }

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 
 export default function EmployeeFilter({ filterStatus, setFilterStatus, search, setSearch }) {
@@ -9,15 +8,15 @@ export default function EmployeeFilter({ filterStatus, setFilterStatus, search, 
   ];
 
   return (
-    <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-3">
-      {/* Buttons */}
+    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+      {/* Filter buttons */}
       <div className="flex flex-wrap gap-2">
         {statuses.map((s) => (
           <button
             key={s.key}
             onClick={() => setFilterStatus(s.key)}
-            className={`px-4 py-1 rounded font-medium transition
-              ${filterStatus === s.key ? "bg-primary text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}
+            className={`px-5 py-2 rounded-lg font-medium transition 
+              ${filterStatus === s.key ? "bg-primary text-white shadow" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}
             `}
           >
             {s.label}
@@ -25,15 +24,15 @@ export default function EmployeeFilter({ filterStatus, setFilterStatus, search, 
         ))}
       </div>
 
-      {/* Search */}
+      {/* Search input */}
       <div className="relative w-full md:w-64">
-        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           placeholder="Tìm kiếm nhân viên..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-3 py-1 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+          className="w-full pl-12 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
         />
       </div>
     </div>
