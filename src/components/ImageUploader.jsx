@@ -15,7 +15,6 @@ export default function ImageUploader({
   };
 
   const handleFileChange = (e) => {
-    console.log("File selected:", e.target.files?.[0]);
     const file = e.target.files?.[0];
     if (!file) return;
     onChange([...images, file]); // placeholder

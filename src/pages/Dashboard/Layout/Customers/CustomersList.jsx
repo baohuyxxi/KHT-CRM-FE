@@ -33,7 +33,6 @@ export default function CustomerList() {
     try {
       setLoading(true);
       const response = await getCustomers();
-      console.log(response.data);
       setCustomers(Array.isArray(response.data.data) ? response.data.data : []);
     } finally {
       setLoading(false);
