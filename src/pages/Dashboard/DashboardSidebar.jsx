@@ -5,8 +5,8 @@ import logo from "~/assets/images/Logo.png";
 import * as Icons from "react-icons/md";
 import { getAccessibleRoutes } from "~/utils/routes";
 
-export default function DashboardSidebar({ isOpen, setIsOpen, role }) {
-  const accessibleRoutes = getAccessibleRoutes(role);
+export default function DashboardSidebar({ isOpen, setIsOpen, user }) {
+  const accessibleRoutes = getAccessibleRoutes(user.permissions);
   const [collapsed, setCollapsed] = useState(false);
 
   return (

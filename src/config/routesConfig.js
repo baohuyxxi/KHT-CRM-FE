@@ -4,6 +4,7 @@ const routesConfig = [
     path: "/dashboard",
     icon: "MdDashboard",
     showInSidebar: true,
+    showInDropdown: false,
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
@@ -11,12 +12,14 @@ const routesConfig = [
     path: "/leads",
     icon: "MdPersonSearch",
     showInSidebar: true,
+    showInDropdown: false,
   },
   {
     name: "Khách hàng",
     path: "/customers",
     icon: "MdGroup",
     showInSidebar: true,
+    showInDropdown: false,
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
@@ -24,6 +27,7 @@ const routesConfig = [
     path: "/customers/add",
     icon: "MdGroup",
     showInSidebar: false,
+    showInDropdown: false,
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
@@ -31,6 +35,7 @@ const routesConfig = [
     path: "/customers/edit/:id",
     icon: "MdGroup",
     showInSidebar: false,
+    showInDropdown: false,
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
@@ -38,6 +43,7 @@ const routesConfig = [
     path: "/business",
     icon: "MdBusiness",
     showInSidebar: true,
+    showInDropdown: false,
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
@@ -45,41 +51,43 @@ const routesConfig = [
     path: "/orders",
     icon: "MdAssignment",
     showInSidebar: true,
-
+    showInDropdown: false,
   },
   {
     name: "Công việc",
     path: "/tasks",
     icon: "MdAssignment",
     showInSidebar: true,
-
+    showInDropdown: false,
   },
   {
     name: "Báo cáo",
     path: "/reports",
     icon: "MdBarChart",
     showInSidebar: true,
-
+    showInDropdown: false,
   },
   {
     name: "Cài đặt",
     path: "/settings",
     icon: "MdSettings",
     showInSidebar: true,
-
+    showInDropdown: false,
   },
   {
     name: "Quản lý nhân viên",
     path: "/employees",
     icon: "MdGroup",
     showInSidebar: true,
-    roles: ["admin"],
+    showInDropdown: false,
+    permissions: ["employee:read:any"],
   },
   {
     name: "Quản lý tài khoản",
     path: "/account",
     icon: "MdAccountCircle",
     showInSidebar: false, // ❌ không hiển thị ở Sidebar
+    showInDropdown: true, // ✅ hiển thị ở Dropdown (AccountMenu)
     // ❌ không cần roles => ai login cũng thấy trong AccountMenu & Header
   },
 ];

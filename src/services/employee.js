@@ -22,6 +22,11 @@ export const getPermission = async (id) => {
   const res = await api.get(`/employees/${id}/permissions`);
   return res.data;
 }
+//Cập nhật quyền nhân viên
+export const updatePermission = async (id, payload) => {
+  const res = await api.put(`/employees/${id}/permissions`, payload);
+  return res.data;
+}
 // Cập nhật nhân viên
 export const updateEmployee = async (id, payload) => {
   const res = await api.put(`/employees/${id}`, payload);

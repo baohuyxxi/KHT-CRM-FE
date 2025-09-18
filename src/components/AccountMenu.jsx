@@ -11,7 +11,7 @@ export default function AccountMenu({ role = "admin" }) {
 
   // 🔑 Lọc các route ẩn sidebar nhưng hợp lệ với role
   const accountRoutes = getAccessibleRoutes(role, { includeHidden: true }).filter(
-    (r) => r.showInSidebar === false
+    (r) => r.showInDropdown === true
   );
 
   const handleLogout = async () => {
