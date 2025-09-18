@@ -4,7 +4,6 @@ import { format } from "date-fns";
 
 export default function BusinessModal({ business, open, onClose }) {
     if (!business) return null;
-    console.log("Business data:", business);
 
     return (
         <Dialog open={open} onClose={onClose} className="fixed inset-0 z-50">
