@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import { createCustomer, getCustomerById } from "~/services/customerAPI";
+import { createCustomer, getCustomerById, updateCustomer } from "~/services/customerAPI";
 
 export default function AddCustomer() {
     const [citizenIdError, setCitizenIdError] = useState(false);
@@ -32,7 +32,6 @@ export default function AddCustomer() {
         try {
             setLoading(true);
             const response = await getCustomerById(id);
-            console.log(response.data);
             if (response.data && response.data.success) {
                 const customer = response.data.data;
                 setFormData({
@@ -64,7 +63,7 @@ export default function AddCustomer() {
             fetchCustomerById(location?.state.id);
         } else {
             const user = JSON.parse(localStorage.getItem("user"));
-            setFormData((prev) => ({ ...prev, owner: user._id }));
+            setFormData((prev) => ({ ...prev, owner: user.userId }));
             setNameUser(user.name);
         }
     }, []);
@@ -78,10 +77,10 @@ export default function AddCustomer() {
     };
 
     const handleCitizenIdBlur = () => {
-        if (formData.citizenId && formData.citizenId.length !== 13) {
-            setCitizenIdError(true);
-        } else {
+        if (formData.citizenId && formData.citizenId.length > 8 && formData.citizenId.length < 13) {
             setCitizenIdError(false);
+        } else {
+            setCitizenIdError(true);
         }
     };
 
@@ -112,13 +111,31 @@ export default function AddCustomer() {
                 const res = await createCustomer(formData);
                 if (res && res.data && res.data.success) {
                     setToast("Khách hàng đã được thêm thành công!");
-                    setTimeout(() => navigate("/customers"), 1500);
+                    setFormData({
+                        owner: formData.owner,
+                        citizenId: "",
+                        firstName: "",
+                        lastName: "",
+                        dob: "",
+                        gender: "",
+                        address: "",
+                        phone: "",
+                        email: "",
+                        customerType: "",
+                        active: true
+                    });
                 } else {
                     setToast("Thêm khách hàng thất bại, vui lòng thử lại!");
                 }
             } else {
-                alert("Chức năng chỉnh sửa đang được phát triển!");
-            }   
+                const res = await updateCustomer(id, formData);
+                if (res && res.data && res.data.success) {
+                    setToast("Khách hàng đã được cập nhật thành công!");
+                    setTimeout(() => navigate("/customers"), 500);
+                } else {
+                    setToast("Cập nhật khách hàng thất bại, vui lòng thử lại!");
+                }
+            }
         } catch (error) {
             setToast("Có lỗi xảy ra, vui lòng thử lại!");
         } finally {
@@ -138,7 +155,7 @@ export default function AddCustomer() {
     return (
         <div className="p-6 max-w-4xl mx-auto relative">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Thêm mới khách hàng</h1>
+                <h1 className="text-2xl font-bold">{mode === "add" ? "Thêm khách hàng mới" : "Chỉnh sửa khách hàng"}</h1>
                 <button
                     type="button"
                     onClick={() => navigate("/customers")}
@@ -152,9 +169,6 @@ export default function AddCustomer() {
                 onSubmit={handleSubmit}
                 className="bg-white shadow-md rounded-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                <h2 className="col-span-2 text-xl font-bold mb-4">
-                    {mode === "add" ? "Thêm khách hàng mới" : "Chỉnh sửa khách hàng"}
-                </h2>
                 {/* Người quản 
                  */}
                 <div>

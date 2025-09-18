@@ -4,6 +4,10 @@ export const createCustomer = (data) => {
     return api.post('/customers/add', data);
 }
 
+export const updateCustomer = (id, data) => {
+    return api.put(`/customers/update/${id}`, data);
+}
+
 export const getCustomers = () => {
     return api.get('/customers');
 }

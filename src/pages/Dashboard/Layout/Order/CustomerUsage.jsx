@@ -41,7 +41,7 @@ export default function CustomerUsage() {
         },
     ]);
 
-    const handleAddProduct = () => navigate("/orders/product");
+    const handleAddProduct = () => navigate("/orders/add");
     const handleAddService = () => navigate("/usage/add-service");
 
     const handleEdit = (id, type) => alert(`Chỉnh sửa ${type} có id: ${id}`);

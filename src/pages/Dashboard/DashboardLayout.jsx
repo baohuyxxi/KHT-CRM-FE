@@ -37,8 +37,9 @@ export default function DashboardLayout() {
     "/customers/edit/:id": CustomerAddNew,
     "/business": BusinessList,
     "/business/add": BusinessAddNew,
+    "/business/edit/:id": BusinessAddNew,
     "/orders": OrderList,
-    "/orders/product": AddProduct,
+    "/orders/add": AddProduct,
   };
 
   return (
