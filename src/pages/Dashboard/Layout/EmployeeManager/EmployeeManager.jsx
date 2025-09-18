@@ -48,6 +48,7 @@ export default function EmployeeManager() {
     fetchEmployees();
   }, [page, pageSize, filterStatus, search]);
 
+
   return (
     <div className="p-6 space-y-4">
       {/* Header */}

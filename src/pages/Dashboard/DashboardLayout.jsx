@@ -26,7 +26,7 @@ export default function DashboardLayout() {
   const role = user?.role || "staff";
 
   // Lấy routes theo role (bao gồm cả showInSidebar=false như /account)
-  const accessibleRoutes = getAccessibleRoutes(role, { includeHidden: true });
+  const accessibleRoutes = getAccessibleRoutes(user.permissions);
 
   // Map path -> component (tạm hardcode, bạn có thể import động)
   const componentMap = {
@@ -45,7 +45,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <DashboardSidebar isOpen={isOpen} setIsOpen={setIsOpen} role={role} />
+      <DashboardSidebar isOpen={isOpen} setIsOpen={setIsOpen} user={user} />
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"

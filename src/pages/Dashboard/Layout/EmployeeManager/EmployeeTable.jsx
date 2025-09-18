@@ -1,6 +1,7 @@
 import { useState } from "react";
 import EditEmployeeModal from "./EditEmployeeModal";
 import RoleEmployeeModal from "./RoleEmployeeModal";
+import { MdEdit } from "react-icons/md";
 
 export default function EmployeeTable({
   employees,
@@ -18,77 +19,56 @@ export default function EmployeeTable({
     console.log("Save edited employee:", updated);
   };
 
-  const handleRoleSave = (updated) => {
-    console.log("Save role employee:", updated);
-  };
-
   return (
     <div className="overflow-x-auto bg-white rounded-xl shadow-md">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            {["ID", "Tên", "Email", "Trạng thái", "Vai trò", "Hành động"].map(
-              (title) => (
-                <th
-                  key={title}
-                  className="px-6 py-3 text-left text-sm font-semibold text-gray-600"
-                >
-                  {title}
-                </th>
-              )
-            )}
+            {["ID", "Tên", "Email", "Trạng thái", "Hành động"].map((title) => (
+              <th
+                key={title}
+                className="px-6 py-3 text-left text-sm font-semibold text-gray-600"
+              >
+                {title}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {loading ? (
-            <tr>
-              <td colSpan={6} className="text-center py-6 text-gray-500">
-                Đang tải...
+          {employees.map((emp) => (
+            <tr key={emp._id} className="hover:bg-gray-50 transition">
+              <td className="px-6 py-3 text-sm">{emp.userId}</td>
+              <td className="px-6 py-3 text-sm font-medium">{emp.name}</td>
+              <td className="px-6 py-3 text-sm">{emp.email}</td>
+              <td className="px-6 py-3">
+                {emp.isActive ? (
+                  <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+                    Hiện hành
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-medium">
+                    Nghỉ việc
+                  </span>
+                )}
+              </td>
+
+              {/* Hành động */}
+              <td className="px-6 py-3 flex items-center gap-3">
+                <button
+                  className="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition text-sm"
+                  onClick={() => setRoleEmployee(emp)}
+                >
+                  Cấp quyền
+                </button>
+                <button
+                  className="p-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition flex items-center justify-center"
+                  onClick={() => setEditEmployee(emp)}
+                >
+                  <MdEdit size={18} />
+                </button>
               </td>
             </tr>
-          ) : employees.length === 0 ? (
-            <tr>
-              <td colSpan={6} className="text-center py-6 text-gray-500">
-                Không có nhân viên
-              </td>
-            </tr>
-          ) : (
-            employees.map((emp) => (
-              <tr key={emp._id} className="hover:bg-gray-50 transition">
-                <td className="px-6 py-3 text-sm">{emp.userId}</td>
-                <td className="px-6 py-3 text-sm font-medium">{emp.name}</td>
-                <td className="px-6 py-3 text-sm">{emp.email}</td>
-                <td className="px-6 py-3">
-                  {emp.isActive ? (
-                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium">
-                      Hiện hành
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-medium">
-                      Nghỉ việc
-                    </span>
-                  )}
-                </td>
-                <td className="px-6 py-3 text-sm">
-                  {emp.role || "Chưa phân quyền"}
-                </td>
-                <td className="px-6 py-3 text-right flex gap-2 justify-end">
-                  <button
-                    className="px-4 py-1 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition"
-                    onClick={() => setEditEmployee(emp)}
-                  >
-                    Chỉnh sửa
-                  </button>
-                  <button
-                    className="px-4 py-1 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition"
-                    onClick={() => setRoleEmployee(emp)}
-                  >
-                    Cấp quyền
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
+          ))}
         </tbody>
       </table>
 
@@ -149,7 +129,6 @@ export default function EmployeeTable({
         <RoleEmployeeModal
           employee={roleEmployee}
           onClose={() => setRoleEmployee(null)}
-          onSave={handleRoleSave}
         />
       )}
     </div>

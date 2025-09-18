@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { register } from "~/services/authAPI";
 import { globalLoading } from "~/context/LoadingContext";
 
-export default function CreateEmployeeModal({ onClose, tenantId, onSuccess }) {
+export default function CreateEmployeeModal({ onClose, refresh }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -11,7 +11,13 @@ export default function CreateEmployeeModal({ onClose, tenantId, onSuccess }) {
     tenantId: "",
   });
 
-  
+  useEffect(() => {
+    const tenantId = localStorage.getItem("user")
+      ? JSON.parse(localStorage.getItem("user")).tenantId
+      : "";
+    setForm((f) => ({ ...f, tenantId }));
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -23,10 +29,9 @@ export default function CreateEmployeeModal({ onClose, tenantId, onSuccess }) {
     }
     globalLoading(true, "Đang tạo nhân viên...");
     try {
-      await register({ ...form, tenantId });
+      await register(form);
       toast.success("Tạo nhân viên thành công!");
       setForm({ name: "", email: "", password: "" });
-      if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
       toast.error(err.response?.data?.message || "Có lỗi xảy ra");
