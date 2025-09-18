@@ -15,7 +15,7 @@ const OrderList = lazy(() => import("./Layout/Order/CustomerUsage"));
 const AddProduct = lazy(() => import("./Layout/Order/AddProduct"));
 
 //Quản lý nhân viên
-const EmployeeManager = lazy(() => import("./Layout/EmployeeManager"));
+const EmployeeManager = lazy(() => import("./Layout/EmployeeManager/EmployeeManager"));
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
