@@ -1,23 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, FileText, Upload, CheckCircle, XCircle } from "lucide-react";
+import { getAllBusinesses } from "~/services/businessAPI";
 
 export default function BusinessList() {
   const navigate = useNavigate();
 
   // Fake dữ liệu doanh nghiệp
-  const [businesses, setBusinesses] = useState(
-    Array.from({ length: 42 }, (_, i) => ({
-      id: i + 1,
-      type: i % 2 === 0 ? "TC" : "HKD",
-      taxId: `0${100000000 + i}`,
-      licenseCode: `GPKD-${1000 + i}`,
-      licenseFile: i % 3 === 0 ? `/files/gpkd_${i + 1}.pdf` : null,
-      name: `Doanh nghiệp ${i + 1} jshfkshf skjdfhaskd sjdfkjsdh sdkjfhdsja sdfsdaj`,
-      representative: `Người đại diện ${i + 1}`,
-      active: i % 4 !== 0,
-    }))
-  );
+  const [businesses, setBusinesses] = useState([])
+
+  const fetchBusinesses = async () => {
+    const businessData = await getAllBusinesses();
+    setBusinesses(businessData.data.data);
+  }
+
+  useEffect(() => {
+    fetchBusinesses();
+  }, []);
+
 
   // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,9 +32,7 @@ export default function BusinessList() {
     }
   };
 
-  const handleEdit = (id) => {
-    alert(`Chỉnh sửa doanh nghiệp ID: ${id}`);
-  };
+  const handleEdit = (id) => navigate(`/business/edit/${id}`, { state: { id: id } });
 
   const handleUpload = (id) => {
     alert(`Upload PDF cho doanh nghiệp ID: ${id}`);
@@ -73,10 +71,10 @@ export default function BusinessList() {
               <tr key={b.id} className="hover:bg-gray-50">
                 <td className="p-2 border text-center">{startIndex + index + 1}</td>
                 <td className="p-2 border">{b.type}</td>
-                <td className="p-2 border">{b.taxId}</td>
+                <td className="p-2 border">{b.taxId == '' ? "-" : b.taxId}</td>
                 <td className="p-2 border">
                   <div className="flex justify-between items-center">
-                    <span>{b.licenseCode}</span>
+                    <span>{b.licenseCode == '' ? "-" : b.licenseCode}</span>
                     {b.licenseFile ? (
                       <a
                         href={b.licenseFile}
@@ -89,7 +87,7 @@ export default function BusinessList() {
                       </a>
                     ) : (
                       <button
-                        onClick={() => handleUpload(b.id)}
+                        onClick={() => handleUpload(b.busId)}
                         className="ml-3 px-2 py-1 border rounded bg-gray-50 text-orange-600 hover:bg-gray-100 flex items-center gap-1"
                         title="Tải file GPKD"
                       >
@@ -101,8 +99,8 @@ export default function BusinessList() {
                 <td className="p-2 border truncate max-w-[250px]" title={b.name}>
                   {b.name}
                 </td>
-                <td className="p-2 border truncate max-w-[200px]" title={b.representative}>
-                  {b.representative}
+                <td className="p-2 border truncate max-w-[200px]" title={b.cusInfo?.lastName}>
+                  {b.cusInfo == null ? "-" : b.cusInfo.lastName}
                 </td>
                 <td className="p-2 border text-center">
                   {b.active ? (
@@ -115,14 +113,14 @@ export default function BusinessList() {
                   <div className="flex justify-center gap-2">
                     <button
                       className="w-8 h-8 flex items-center justify-center border bg-gray-100 rounded hover:bg-gray-200"
-                      onClick={() => handleEdit(b.id)}
+                      onClick={() => handleEdit(b.busId)}
                       title="Chỉnh sửa"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       className="w-8 h-8 flex items-center justify-center border bg-red-500 text-white rounded hover:bg-red-600"
-                      onClick={() => handleDelete(b.id)}
+                      onClick={() => handleDelete(b.busId)}
                       title="Xóa"
                     >
                       <Trash2 className="w-4 h-4" />
