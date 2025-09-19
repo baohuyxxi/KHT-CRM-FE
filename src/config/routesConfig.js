@@ -65,13 +65,12 @@ const routesConfig = [
     path: "/orders",
     icon: "MdAssignment",
     showInSidebar: true,
-    showInDropdown: false,
   },
   {
     name: "Đơn hàng",
     path: "/orders/add",
     icon: "MdAssignment",
-    showInSidebar: false,
+    showInSidebar: false
 
   },
   {
