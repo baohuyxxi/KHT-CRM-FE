@@ -47,7 +47,7 @@ const routesConfig = [
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
-    name: "Doanh nghiệp",
+    name: "Thêm Doanh nghiệp ",
     path: "/business/add",
     icon: "MdBusiness",
     showInSidebar: false,
