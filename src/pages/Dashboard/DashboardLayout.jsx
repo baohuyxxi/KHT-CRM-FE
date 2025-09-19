@@ -11,7 +11,7 @@ const CustomersList = lazy(() => import("./Layout/Customers/CustomersList"));
 const CustomerAddNew = lazy(() => import("./Layout/Customers/CustomerAddNew"));
 const BusinessList = lazy(() => import("./Layout/Business/BusinessList"));
 const BusinessAddNew = lazy(() => import("./Layout/Business/BusinessAddNew"));
-const OrderList = lazy(() => import("./Layout/Order/CustomerUsage"));
+const OrderList = lazy(() => import("./Layout/Order/OrderList"));
 const AddProduct = lazy(() => import("./Layout/Order/AddProduct"));
 
 //Quản lý nhân viên
@@ -40,6 +40,7 @@ export default function DashboardLayout() {
     "/business/edit/:id": BusinessAddNew,
     "/orders": OrderList,
     "/orders/add": AddProduct,
+    "/orders/edit/:id": AddProduct,
   };
 
   return (

@@ -72,6 +72,7 @@ export default function BusinessList() {
           <thead className="bg-gray-100">
             <tr>
               <th className="p-2 border text-center">STT</th>
+              <th className="p-2 border text-center">Mã DN</th>
               <th className="p-2 border">Loại</th>
               <th className="p-2 border">MST</th>
               <th className="p-2 border">GPKD</th>
@@ -85,6 +86,7 @@ export default function BusinessList() {
             {paginatedBusinesses.map((b, index) => (
               <tr key={b.id} className="hover:bg-gray-50">
                 <td className="p-2 border text-center">{startIndex + index + 1}</td>
+                <td className="p-2 border">{b.busId}</td>
                 <td className="p-2 border">{b.type}</td>
                 <td className="p-2 border">{b.taxId == '' ? "-" : b.taxId}</td>
                 <td className="p-2 border">
