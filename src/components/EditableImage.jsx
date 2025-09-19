@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Pencil, Check, Loader2 } from "lucide-react";
-import { uploadImage } from "~/services/adminAPI";
+import { uploadImage } from "~/services/uploadAPI";
 
 export default function EditableImage({
   src,

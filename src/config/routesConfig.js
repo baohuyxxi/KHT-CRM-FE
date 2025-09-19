@@ -82,6 +82,19 @@ const routesConfig = [
     showInDropdown: false,
   },
   {
+    name: "Tạo công việc",
+    path: "/tasks/create",
+    icon: "MdAssignment",
+    showInSidebar: false,
+    showInDropdown: false,
+  },
+  {
+    name: "Thực hiện công việc",
+    path: "/tasks/:taskLogId/:logs",
+    showInSidebar: false,
+    showInDropdown: false,
+  },
+  {
     name: "Báo cáo",
     path: "/reports",
     icon: "MdBarChart",
