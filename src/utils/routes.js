@@ -12,12 +12,7 @@ export function getAccessibleRoutes(
   { includeHidden = false } = {}
 ) {
   return routesConfig.filter((route) => {
-    // Ẩn trong sidebar
-    if (!includeHidden && route.showInSidebar === false) return false;
-
-    // Nếu không khai báo permissions -> ai cũng thấy
     if (!route.permissions) return true;
-
     // Nếu route có permissions -> user phải có ít nhất 1 quyền
     return route.permissions.some((p) => userPermissions.includes(p));
   });
@@ -29,4 +24,20 @@ export function getAccessibleRoutes(
 export function getRouteTitle(pathname) {
   const found = routesConfig.find((route) => route.path === pathname);
   return found?.name || "Nội dung chính";
+}
+
+export function getFunctionSidebar(
+  userPermissions = [],
+  { includeHidden = false } = {}
+) {
+  return routesConfig.filter((route) => {
+    // Ẩn trong sidebar
+    if (!includeHidden && route.showInSidebar === false) return false;
+
+    // Nếu không khai báo permissions -> ai cũng thấy
+    if (!route.permissions) return true;
+
+    // Nếu route có permissions -> user phải có ít nhất 1 quyền
+    return route.permissions.some((p) => userPermissions.includes(p));
+  });
 }
