@@ -73,6 +73,13 @@ const routesConfig = [
     showInSidebar: false
 
   },
+   {
+    name: "Đơn hàng",
+    path: "/orders/edit/:id",
+    icon: "MdAssignment",
+    showInSidebar: false
+
+  },
   {
     name: "Công việc",
     path: "/tasks",

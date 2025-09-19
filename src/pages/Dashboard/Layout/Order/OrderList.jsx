@@ -31,7 +31,7 @@ export default function CustomerUsage() {
 
   const handleAddService = () => navigate("/orders/add?type=DV");
 
-  const handleEdit = (id, type) => alert(`Chỉnh sửa ${type} có id: ${id}`);
+  const handleEdit = (id, type) => navigate(`/orders/edit/${id}`, { state: { id, type } });
   const handleDelete = (id, type) => {
     if (confirm(`Bạn có chắc muốn xóa ${type} này?`)) {
       if (type === "sản phẩm") {
@@ -66,7 +66,7 @@ export default function CustomerUsage() {
             </button>
           </div>
           <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
-            <div className="w-[2500px]">
+            <div className="w-[1500px]">
               <UsageTable
                 data={products}
                 handleEdit={(id) => handleEdit(id, "sản phẩm")}
@@ -88,7 +88,7 @@ export default function CustomerUsage() {
             </button>
           </div>
           <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
-            <div className="w-[2500px]">
+            <div className="w-[1500px]">
               <UsageTable
                 data={services}
                 handleEdit={(id) => handleEdit(id, "dịch vụ")}
