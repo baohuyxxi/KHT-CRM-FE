@@ -13,9 +13,11 @@ const BusinessList = lazy(() => import("./Layout/Business/BusinessList"));
 const BusinessAddNew = lazy(() => import("./Layout/Business/BusinessAddNew"));
 const OrderList = lazy(() => import("./Layout/Order/CustomerUsage"));
 const AddProduct = lazy(() => import("./Layout/Order/AddProduct"));
-
+const Task = lazy(() => import("./Layout/Task/Task"));
 //Quản lý nhân viên
 const EmployeeManager = lazy(() => import("./Layout/EmployeeManager/EmployeeManager"));
+const CreateTask = lazy(() => import("./Layout/Task/CreateTask"));
+const TaskLogPage = lazy(() => import("./Layout/Task/TaskLog/TaskLogPage"));
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,6 +42,9 @@ export default function DashboardLayout() {
     "/business/edit/:id": BusinessAddNew,
     "/orders": OrderList,
     "/orders/add": AddProduct,
+    "/tasks": Task,
+    "/tasks/create": CreateTask,
+    "/tasks/:taskLogId/:logs": TaskLogPage,
   };
 
   return (
@@ -60,16 +65,6 @@ export default function DashboardLayout() {
         <main className="flex-1 bg-gray-100 overflow-y-auto">
           <Suspense fallback={<div>Loading...</div>}>
             <Routes>
-
-              {/* <Route path="/account" element={<AccountManager />} />
-              <Route path="/customers" element={<CustomersList />} />
-              <Route path="/customers/add" element={<CustomerAddNew />} />
-              <Route path="/business" element={<BusinessList />} />
-              <Route path="/business/add" element={<BusinessAddNew />} />
-              <Route path="/orders" element={<OrderList />} />
-              <Route path="/orders/product" element={<AddProduct />} />
-              <Route index element={<BusinessList />} /> */}
-
               {accessibleRoutes.map((route) => {
                 const Component = componentMap[route.path];
                 if (!Component) return null;
