@@ -28,6 +28,7 @@ export default function CustomerUsage() {
 
 
   const handleAddProduct = () => navigate("/orders/add?type=SP");
+
   const handleAddService = () => navigate("/orders/add?type=DV");
 
   const handleEdit = (id, type) => alert(`Chỉnh sửa ${type} có id: ${id}`);
