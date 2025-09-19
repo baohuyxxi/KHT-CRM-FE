@@ -16,7 +16,6 @@ export default function EmployeeTable({
   const [roleEmployee, setRoleEmployee] = useState(null);
 
   const handleEditSave = (updated) => {
-    console.log("Save edited employee:", updated);
   };
 
   return (
