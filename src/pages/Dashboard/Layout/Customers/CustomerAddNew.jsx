@@ -131,7 +131,7 @@ export default function AddCustomer() {
                 const res = await updateCustomer(id, formData);
                 if (res && res.data && res.data.success) {
                     setToast("Khách hàng đã được cập nhật thành công!");
-                    setTimeout(() => navigate("/customers"), 500);
+                    setTimeout(() => navigate(-1), 500);
                 } else {
                     setToast("Cập nhật khách hàng thất bại, vui lòng thử lại!");
                 }
@@ -158,7 +158,7 @@ export default function AddCustomer() {
                 <h1 className="text-2xl font-bold">{mode === "add" ? "Thêm khách hàng mới" : "Chỉnh sửa khách hàng"}</h1>
                 <button
                     type="button"
-                    onClick={() => navigate("/customers")}
+                    onClick={() => navigate(-1)}
                     className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
                 >
                     Quay lại

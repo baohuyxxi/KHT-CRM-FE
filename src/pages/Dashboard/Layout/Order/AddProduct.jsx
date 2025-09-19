@@ -18,7 +18,7 @@ export default function AddOrder() {
     registerDate: "",
     startDate: "",
     guarantee: "",
-    expire: "vĩnh viễn", // mặc định
+    expire: "Không có", // mặc định
     expectedEnd: "",
     price: "",
     paymentStatus: "Chưa thanh toán",
@@ -50,9 +50,10 @@ export default function AddOrder() {
 
   // Tính ngày kết thúc mỗi khi startDate hoặc expire thay đổi
   useEffect(() => {
+    console.log("Calculating expected end date...");
     if (!formData.startDate) return;
 
-    if (formData.expire === "vĩnh viễn") {
+    if (formData.expire === "Vĩnh viễn" || formData.expire === "Không có") {
       setFormData((prev) => ({ ...prev, expectedEnd: "" })); // không có ngày kết thúc
       return;
     }
@@ -72,7 +73,6 @@ export default function AddOrder() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await createOrder(formData);
-    console.log(res);
     if (res) {
       alert("Tạo đơn hàng thành công!");
       navigate(-1);
@@ -318,7 +318,8 @@ export default function AddOrder() {
                   onChange={handleChange}
                   className="w-full border px-3 py-2 rounded"
                 >
-                  <option value="vĩnh viễn">Vĩnh viễn</option>
+                  <option value="Không có">Không có</option>
+                  <option value="Vĩnh viễn">Vĩnh viễn</option>
                   {Array.from({ length: 48 }, (_, i) => (
                     <option key={i + 1} value={i + 1}>
                       {i + 1} tháng
