@@ -3,10 +3,10 @@ import { NavLink } from "react-router-dom";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import logo from "~/assets/images/Logo.png";
 import * as Icons from "react-icons/md";
-import { getAccessibleRoutes } from "~/utils/routes";
+import { getFunctionSidebar } from "~/utils/routes";
 
 export default function DashboardSidebar({ isOpen, setIsOpen, user }) {
-  const accessibleRoutes = getAccessibleRoutes(user.permissions);
+  const accessibleRoutes = getFunctionSidebar(user.permissions);
   const [collapsed, setCollapsed] = useState(false);
 
   return (

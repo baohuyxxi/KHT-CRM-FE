@@ -1,13 +1,39 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, FileText, Upload, CheckCircle, XCircle } from "lucide-react";
-import { getAllBusinesses } from "~/services/businessAPI";
+import { getAllBusinesses, updateBusiness } from "~/services/businessAPI";
+import UploadGPKD from "~/components/Business/UploadGPKD";
+import Toast from "~/components/Toast";
+import ConfirmDeleteDialog from "~/components/Business/ConfirmDeleteDialog";
 
 export default function BusinessList() {
   const navigate = useNavigate();
+  const [businesses, setBusinesses] = useState([]);
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000); // auto hide sau 3s
+  };
 
-  // Fake dữ liệu doanh nghiệp
-  const [businesses, setBusinesses] = useState([])
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedBus, setSelectedBus] = useState(null);
+
+  const handleDeleteClick = (business) => {
+    setSelectedBus(business);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedBus) return;
+    try {
+      // await handleDelete(selectedBusId); // gọi API xóa
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleteDialogOpen(false);
+      selectedBus(null);
+    }
+  };
 
   const fetchBusinesses = async () => {
     const businessData = await getAllBusinesses();
@@ -26,18 +52,7 @@ export default function BusinessList() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedBusinesses = businesses.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Bạn có chắc muốn xóa doanh nghiệp này?")) {
-      setBusinesses((prev) => prev.filter((b) => b.id !== id));
-    }
-  };
-
   const handleEdit = (id) => navigate(`/business/edit/${id}`, { state: { id: id } });
-
-  const handleUpload = (id) => {
-    alert(`Upload PDF cho doanh nghiệp ID: ${id}`);
-    // Ở đây bạn có thể mở modal upload file thực tế
-  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -86,13 +101,17 @@ export default function BusinessList() {
                         <FileText className="w-4 h-4" />
                       </a>
                     ) : (
-                      <button
-                        onClick={() => handleUpload(b.busId)}
-                        className="ml-3 px-2 py-1 border rounded bg-gray-50 text-orange-600 hover:bg-gray-100 flex items-center gap-1"
-                        title="Tải file GPKD"
-                      >
-                        <Upload className="w-4 h-4" />
-                      </button>
+                      <UploadGPKD
+                        onUpload={async (url) => {
+                          const res = await updateBusiness(b.busId, { licenseFile: url });
+                          if (res.status === 200) {
+                            setBusinesses((prev) => prev.map((bus) => bus.busId === b.busId ? { ...bus, licenseFile: url } : bus));
+                            showToast("Upload file GPKD thành công");
+                          } else {
+                            showToast("Lỗi khi upload file GPKD!", "error");
+                          }
+                        }}
+                      />
                     )}
                   </div>
                 </td>
@@ -120,7 +139,7 @@ export default function BusinessList() {
                     </button>
                     <button
                       className="w-8 h-8 flex items-center justify-center border bg-red-500 text-white rounded hover:bg-red-600"
-                      onClick={() => handleDelete(b.busId)}
+                      onClick={() => handleDeleteClick(b)}
                       title="Xóa"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -162,6 +181,15 @@ export default function BusinessList() {
           Sau
         </button>
       </div>
+      {toast && <Toast message={toast.message} type={toast.type} />}
+      {deleteDialogOpen && (
+        <ConfirmDeleteDialog
+          item={selectedBus}
+          onConfirm={handleConfirmDelete}
+          onClose={() => setDeleteDialogOpen(false)}
+        />
+      )}
+
     </div>
   );
 }

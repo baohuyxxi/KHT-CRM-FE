@@ -65,12 +65,14 @@ export default function CustomerUsage() {
               <Plus className="w-4 h-4" /> Thêm sản phẩm
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <UsageTable
-              data={products}
-              handleEdit={(id) => handleEdit(id, "sản phẩm")}
-              handleDelete={(id) => handleDelete(id, "sản phẩm")}
-            />
+          <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
+            <div className="w-[2500px]">
+              <UsageTable
+                data={products}
+                handleEdit={(id) => handleEdit(id, "sản phẩm")}
+                handleDelete={(id) => handleDelete(id, "sản phẩm")}
+              />
+            </div>
           </div>
         </TabsContent>
 
@@ -85,12 +87,14 @@ export default function CustomerUsage() {
               <Plus className="w-4 h-4" /> Thêm dịch vụ
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <UsageTable
-              data={services}
-              handleEdit={(id) => handleEdit(id, "dịch vụ")}
-              handleDelete={(id) => handleDelete(id, "dịch vụ")}
-            />
+          <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
+            <div className="w-[2500px]">
+              <UsageTable
+                data={services}
+                handleEdit={(id) => handleEdit(id, "dịch vụ")}
+                handleDelete={(id) => handleDelete(id, "dịch vụ")}
+              />
+            </div>
           </div>
         </TabsContent>
       </Tabs>
