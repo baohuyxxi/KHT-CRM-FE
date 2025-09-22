@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import UsageTable from "~/components/Usage/UsageTable";
+import UsageTable from "~/components/Order/UsageTable";
 import { getOrdersByCustomerId } from "~/services/orderAPI";
 
 
