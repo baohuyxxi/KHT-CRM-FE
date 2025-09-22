@@ -38,6 +38,15 @@ const routesConfig = [
     showInDropdown: false,
     // ❌ không cần roles => tất cả roles đều thấy
   },
+
+  {
+    name: "Khách hàng",
+    path: "/customers/:id/orders",
+    icon: "MdGroup",
+    showInSidebar: false,
+    showInDropdown: false,
+    // ❌ không cần roles => tất cả roles đều thấy
+  },
   {
     name: "Doanh nghiệp",
     path: "/business",
@@ -73,7 +82,7 @@ const routesConfig = [
     showInSidebar: false
 
   },
-   {
+  {
     name: "Đơn hàng",
     path: "/orders/edit/:id",
     icon: "MdAssignment",

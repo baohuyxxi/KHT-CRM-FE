@@ -1,34 +1,76 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Search, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import UsageTable from "~/components/Usage/UsageTable";
-import { getOrders } from "~/services/orderAPI";
+import UsageTable from "~/components/Order/UsageTable";
+import { getOrders, filterOrders } from "~/services/orderAPI";
+import FilterPanel from "~/components/Order/Filter";
 
 export default function CustomerUsage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [services, setServices] = useState([]);
+  const limit = 50;
+  const [currentPageSP, setCurrentPageSP] = useState(1);
+  const [currentPageDV, setCurrentPageDV] = useState(1);
+  const [totalPagesSP, setTotalPagesSP] = useState(0);
+  const [totalPagesDV, setTotalPagesDV] = useState(0);
 
-  const fetchOrders = async () => {
-    const res = await getOrders();
-    if (res && res.data) {
-      const prods = res.data.data.filter((o) => o.type === "SP");
-      const svcs = res.data.data.filter((o) => o.type === "DV");
-      setProducts(prods);
-      setServices(svcs);
+  const defaultFilterSP = {
+    type: "SP",
+    reqType: "",
+    search: "",
+    name: "",
+    startDate: "",
+    endDate: "",
+    paymentStatus: "",
+    status: "",
+    limit: limit,
+    page: 1,
+  };
+  const defaultFilterDV = {
+    type: "DV",
+    reqType: "",
+    search: "",
+    name: "",
+    startDate: "",
+    endDate: "",
+    paymentStatus: "",
+    status: "",
+    limit: limit,
+    page: 1,
+  };
+  const [filterSP, setFilterSP] = useState(defaultFilterSP);
+  const [filterDV, setFilterDV] = useState(defaultFilterDV);
+
+
+  // ✅ Lấy danh sách SP
+  const fetchOrdersSP = async () => {
+    const resSP = await filterOrders({ ...filterSP, page: currentPageSP });
+    if (resSP && resSP.data) {
+      setProducts(resSP.data.data || []);
+      setTotalPagesSP(resSP.data.totalPages || 0);
     }
   };
 
+  // ✅ Lấy danh sách DV
+  const fetchOrdersDV = async () => {
+    const resDV = await filterOrders({ ...filterDV, page: currentPageDV });
+    if (resDV && resDV.data) {
+      setServices(resDV.data.data || []);
+      setTotalPagesDV(resDV.data.totalPages || 0);
+    }
+  };
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    fetchOrdersSP();
+  }, [currentPageSP]);
 
-
+  useEffect(() => {
+    fetchOrdersDV();
+  }, [currentPageDV]);
 
   const handleAddProduct = () => navigate("/orders/add?type=SP");
-
   const handleAddService = () => navigate("/orders/add?type=DV");
 
   const handleEdit = (id, type) => navigate(`/orders/edit/${id}`, { state: { id, type } });
@@ -42,11 +84,37 @@ export default function CustomerUsage() {
     }
   };
 
+  // ✅ Bấm Lọc
+  const handleFilterSP = () => {
+    setCurrentPageSP(1);
+    fetchOrdersSP();
+  };
+  const handleFilterDV = () => {
+    setCurrentPageDV(1);
+    fetchOrdersDV();
+  };
+
+  // ✅ Reset filter
+  const handleReset = () => {
+    setFilterSP(defaultFilterSP);
+    setFilterDV(defaultFilterDV);
+    setCurrentPageSP(1);
+    setCurrentPageDV(1);
+    fetchOrdersSP();
+    fetchOrdersDV();
+  };
+
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        Sản phẩm & Dịch vụ Khách hàng sử dụng
-      </h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Sản phẩm & Dịch vụ Khách hàng sử dụng</h1>
+        <button
+          onClick={handleAddProduct}
+          className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+        >
+          <Plus className="w-4 h-4" /> Thêm sản phẩm
+        </button>
+      </div>
 
       <Tabs defaultValue="products">
         <TabsList>
@@ -56,46 +124,67 @@ export default function CustomerUsage() {
 
         {/* Tab sản phẩm */}
         <TabsContent value="products">
-          <div className="flex justify-between mb-3">
-            <h2 className="text-lg font-semibold">Danh sách sản phẩm</h2>
-            <button
-              onClick={handleAddProduct}
-              className="flex items-center gap-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-            >
-              <Plus className="w-4 h-4" /> Thêm sản phẩm
-            </button>
+          <div className="mb-4 p-4 bg-white border rounded-lg shadow-sm">
+            <FilterPanel
+              filter={filterSP}
+              setFilter={setFilterSP}
+              onFilter={handleFilterSP}
+              onReset={handleReset}
+            />
           </div>
-          <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
-            <div className="w-[1500px]">
-              <UsageTable
-                data={products}
-                handleEdit={(id) => handleEdit(id, "sản phẩm")}
-                handleDelete={(id) => handleDelete(id, "sản phẩm")}
-              />
+
+          {products.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 italic border rounded-lg bg-white">
+              Không có đơn hàng nào
             </div>
-          </div>
+          ) : (
+            <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
+              <div className="w-[1500px]">
+                <UsageTable
+                  data={products}
+                  handleEdit={(id) => handleEdit(id, "sản phẩm")}
+                  handleDelete={(id) => handleDelete(id, "sản phẩm")}
+                  currentPage={currentPageSP}
+                  totalPages={totalPagesSP}
+                  onPageChange={(page) => {
+                    setCurrentPageSP(page)
+                    setFilterSP({ ...filterSP, page: page })
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         {/* Tab dịch vụ */}
         <TabsContent value="services">
-          <div className="flex justify-between mb-3">
-            <h2 className="text-lg font-semibold">Danh sách dịch vụ</h2>
-            <button
-              onClick={handleAddService}
-              className="flex items-center gap-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              <Plus className="w-4 h-4" /> Thêm dịch vụ
-            </button>
+          <div className="mb-4 p-4 bg-white border rounded-lg shadow-sm">
+            <FilterPanel
+              filter={filterDV}
+              setFilter={setFilterDV}
+              onFilter={handleFilterDV}
+              onReset={handleReset}
+            />
           </div>
-          <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
-            <div className="w-[1500px]">
-              <UsageTable
-                data={services}
-                handleEdit={(id) => handleEdit(id, "dịch vụ")}
-                handleDelete={(id) => handleDelete(id, "dịch vụ")}
-              />
+
+          {services.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 italic border rounded-lg bg-white">
+              Không có đơn hàng nào
             </div>
-          </div>
+          ) : (
+            <div className="overflow-x-auto w-full max-w-[1200px] mx-auto">
+              <div className="w-[1500px]">
+                <UsageTable
+                  data={services}
+                  handleEdit={(id) => handleEdit(id, "dịch vụ")}
+                  handleDelete={(id) => handleDelete(id, "dịch vụ")}
+                  currentPage={currentPageDV}
+                  totalPages={totalPagesDV}
+                  onPageChange={(page) => setCurrentPageDV(page)}
+                />
+              </div>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Toast from "~/components/Toast";
 import { getCustomerById } from "~/services/customerAPI";
-import { createOrder, getOrderById, updateOrder } from "~/services/orderAPI";
+import { createOrder, extendOrder, getOrderById, updateOrder } from "~/services/orderAPI";
 
 export default function AddOrder() {
   const navigate = useNavigate();
   const [businesses, setBusinesses] = useState([]);
   const [toast, setToast] = useState(null);
-  const [selectedBus, setSelectedBus] = useState(null);
+  const [selectedBus, setSelectedBus] = useState([]);
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000); // auto hide sau 3s
@@ -36,7 +36,7 @@ export default function AddOrder() {
   });
 
   const { id } = useParams();
-
+  const { state } = useLocation();
   const fetchOrder = async (id) => {
     const res = await getOrderById(id);
     if (res) {
@@ -47,7 +47,7 @@ export default function AddOrder() {
         expectedEnd: data.expectedEnd ? data.expectedEnd.split("T")[0] : "",
         registerDate: data.registerDate ? data.registerDate.split("T")[0] : "",
       });
-      setSelectedBus({ busId: data.busId, taxId: data.busTaxId, name: data.busName } );
+      setBusinesses([{ cusId: data.cusId, busId: data.busId, busTaxId: data.busTaxId, busName: data.busName, cusCitizenId: data.cusCitizenId }]); // mảng doanh nghiệp liên quan
     }
   };
 
@@ -56,6 +56,32 @@ export default function AddOrder() {
   useEffect(() => {
     if (id) {
       fetchOrder(id);
+    }
+    if (state && state.item) {
+      const item = state.item;
+      setFormData((prev) => ({
+        ...prev,
+        cusId: item.cusId || "",
+        cusCitizenId: item.cusCitizenId || "",
+        cusName: item.cusName || "",
+        busId: item.busId || "",
+        busTaxId: item.busTaxId || "",
+        busName: item.busName || "",
+        type: item.type || "",
+        name: item.name || "",
+        price: item.price || "",
+        reqType: "Gia hạn/Mua thêm",
+        startDate: null,
+        registerDate: new Date().toISOString().split("T")[0],
+        expectedEnd: null,
+        expire: item.expire || "Không có",
+        guarantee: item.guarantee || "",
+        paymentStatus: "Chưa thanh toán",
+        paid: item.paid || 0,
+        status: "Mới",
+      }));
+      setBusinesses([{ cusId: item.cusId, busId: item.busId, busTaxId: item.busTaxId, busName: item.busName, cusCitizenId: item.cusCitizenId }]); // mảng doanh nghiệp liên quan
+
     }
   }, [id]);
 
@@ -110,21 +136,23 @@ export default function AddOrder() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // --- fetch thông tin KH theo ID ---
   const fetchCustomerById = async (id) => {
     const res = await getCustomerById(id);
     if (res) {
       const data = res.data.data;
+      const firstBus = data.businesses?.[0] || {}; // chọn DN đầu tiên
+
       setBusinesses(data.businesses || []);
       setFormData((prev) => ({
         ...prev,
         cusId: data?.cusId || "",
         cusCitizenId: data.citizenId || "",
-        cusName: data.firstName + " " + data.lastName || "",
-        busId: data.businesses?.[0]?.busId || "",
-        busTaxId: data.businesses?.[0]?.taxId || "",
-        busName: data.businesses?.[0]?.name || "",
+        cusName: (data.firstName + " " + data.lastName) || "",
+        busId: firstBus.busId || "",
+        busTaxId: firstBus.taxId || "",
+        busName: firstBus.name || "",
       }));
+      setSelectedBus(firstBus); // object chứ không phải mảng
     }
   };
 
@@ -158,6 +186,13 @@ export default function AddOrder() {
           showToast("Cập nhật đơn hàng thành công!");
         } else {
           showToast("Cập nhật đơn hàng thất bại, vui lòng thử lại!", "error");
+        }
+      } else if (state && state?.item) {
+        const res = await extendOrder(state?.item.ordId, formData);
+        if (res) {
+          showToast("Gia hạn/Mua thêm đơn hàng thành công!");
+        } else {
+          showToast("Gia hạn/Mua thêm đơn hàng thất bại, vui lòng thử lại!", "error");
         }
       } else {
         const res = await createOrder(formData);
@@ -203,6 +238,7 @@ export default function AddOrder() {
                   onChange={handleChange}
                   className="w-full border px-3 py-2 rounded"
                   required
+                  disabled={!!state?.item} // ✅ thay cho readOnly
                 >
                   <option value="">-- Chọn loại --</option>
                   <option value="SP">Sản phẩm</option>
@@ -217,6 +253,7 @@ export default function AddOrder() {
                   onChange={handleChange}
                   className="w-full border px-3 py-2 rounded"
                   required
+                  disabled={!!state?.item} // ✅ thay cho readOnly
                 >
                   <option value="">-- Chọn loại yêu cầu --</option>
                   <option value="Đấu mới">Đấu mới</option>
@@ -237,6 +274,8 @@ export default function AddOrder() {
                     }));
                   }}
                   className="w-full border px-3 py-2 rounded"
+                  required
+                  disabled={!!state?.item} // ✅ thay cho readOnly
                 >
                   <option value="">-- Chọn sản phẩm --</option>
                   {products.map((p, idx) => (
@@ -260,8 +299,10 @@ export default function AddOrder() {
                   name="cusId"
                   value={formData.cusId}
                   onChange={handleChange}
-                  onBlur={(e) => fetchCustomerById(e.target.value)}
-                  className="w-full border px-3 py-2 rounded"
+                  onBlur={(e) => state?.item ? null : fetchCustomerById(e.target.value)}
+                  className={state?.item ? "w-full border px-3 py-2 rounded  bg-gray-100 cursor-not-allowed" : "w-full border px-3 py-2 rounded"}
+                  required
+                  readOnly={!!state?.item} // ✅ không cho sửa nếu có state item
                 />
               </div>
               <div>
@@ -293,15 +334,18 @@ export default function AddOrder() {
                   name="busId"
                   value={formData.busId}
                   onChange={(e) => {
-                    setSelectedBus(businesses.find(b => b.busId === e.target.value));
+                    const selected = businesses.find(b => b.busId === e.target.value);
+                    setSelectedBus(selected || {});
                     setFormData((prev) => ({
                       ...prev,
-                      busId: e.target.value,
-                      busTaxId: selectedBus?.taxId || "",
-                      busName: selectedBus?.name || "",
+                      busId: selected?.busId || "",
+                      cusCitizenId: selected?.cusCitizenId || "",
+                      busTaxId: selected?.busTaxId || "",   // thêm dòng này
+                      busName: selected?.name || "",
                     }));
                   }}
                   className="w-full border px-3 py-2 rounded"
+                  disabled={!!state?.item} // ✅ thay cho readOnly
                 >
                   <option value="">-- Chọn DN --</option>
                   {businesses.map((bus) => (
@@ -469,7 +513,9 @@ export default function AddOrder() {
                 ? "Đang xử lý..."
                 : id
                   ? "Cập nhật đơn hàng"
-                  : "Thêm đơn hàng"}
+                  : state && state?.item
+                    ? "Gia hạn/Mua thêm"
+                    : "Thêm đơn hàng"}
             </button>
           </div>
         </div>

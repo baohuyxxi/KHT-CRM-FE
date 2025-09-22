@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pencil, Trash2, Plus, FileText, Upload, CheckCircle, XCircle } from "lucide-react";
-import { getAllBusinesses, updateBusiness } from "~/services/businessAPI";
+import { deleteBusiness, getAllBusinesses, updateBusiness } from "~/services/businessAPI";
 import UploadGPKD from "~/components/Business/UploadGPKD";
 import Toast from "~/components/Toast";
 import ConfirmDeleteDialog from "~/components/Business/ConfirmDeleteDialog";
+import PaginationUI from "~/components/Pagination";
 
 export default function BusinessList() {
   const navigate = useNavigate();
@@ -26,7 +27,13 @@ export default function BusinessList() {
   const handleConfirmDelete = async () => {
     if (!selectedBus) return;
     try {
-      // await handleDelete(selectedBusId); // gọi API xóa
+      const res = await deleteBusiness(selectedBus.busId); // gọi API xóa
+      if (res.status === 200) {
+        setBusinesses((prev) => prev.filter((b) => b.busId !== selectedBus.busId)); // cập nhật lại danh sách
+        showToast("Xóa doanh nghiệp thành công");
+      } else {
+        showToast("Lỗi khi xóa doanh nghiệp!", "error");
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -154,34 +161,12 @@ export default function BusinessList() {
         </table>
       </div>
 
-      {/* Phân trang */}
-      <div className="flex justify-center items-center gap-2 mt-4">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((p) => p - 1)}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Trước
-        </button>
-        {Array.from({ length: totalPages }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentPage(i + 1)}
-            className={`px-3 py-1 border rounded ${currentPage === i + 1
-              ? "bg-blue-500 text-white"
-              : "hover:bg-gray-100"
-              }`}
-          >
-            {i + 1}
-          </button>
-        ))}
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage((p) => p + 1)}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          Sau
-        </button>
+      <div className="mt-4">
+        <PaginationUI
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
       </div>
       {toast && <Toast message={toast.message} type={toast.type} />}
       {deleteDialogOpen && (

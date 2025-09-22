@@ -8,6 +8,7 @@ import { useSelector } from "react-redux";
 // Lazy imports (ví dụ, có thể import động theo path)
 const AccountManager = lazy(() => import("./Layout/AccountManager"));
 const CustomersList = lazy(() => import("./Layout/Customers/CustomersList"));
+const CustomersListLead = lazy(() => import("./Layout/Customers/CustomersLeadList"));
 const CustomerAddNew = lazy(() => import("./Layout/Customers/CustomerAddNew"));
 const BusinessList = lazy(() => import("./Layout/Business/BusinessList"));
 const BusinessAddNew = lazy(() => import("./Layout/Business/BusinessAddNew"));
@@ -18,6 +19,8 @@ const Task = lazy(() => import("./Layout/Task/Task"));
 const EmployeeManager = lazy(() => import("./Layout/EmployeeManager/EmployeeManager"));
 const CreateTask = lazy(() => import("./Layout/Task/CreateTask"));
 const TaskLogPage = lazy(() => import("./Layout/Task/TaskLog/TaskLogPage"));
+
+const CustomerOrders = lazy(() => import("~/components/Customers/CustomerOrders"));
 
 export default function DashboardLayout() {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +37,7 @@ export default function DashboardLayout() {
   const componentMap = {
     "/account": AccountManager,
     "/employees": EmployeeManager,
+    "/leads": CustomersListLead,
     "/customers": CustomersList,
     "/customers/add": CustomerAddNew,
     "/customers/edit/:id": CustomerAddNew,
@@ -41,6 +45,7 @@ export default function DashboardLayout() {
     "/business/add": BusinessAddNew,
     "/business/edit/:id": BusinessAddNew,
     "/orders": OrderList,
+    "/customers/:id/orders": CustomerOrders,
     "/orders/add": AddProduct,
     "/orders/edit/:id": AddProduct,
     "/tasks": Task,

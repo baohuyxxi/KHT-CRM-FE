@@ -223,23 +223,36 @@ export default function AddCustomer() {
                         type="text"
                         name="citizen_id"
                         value={formData.citizenId}
-                        onChange={handleCitizenIdChange}
-                        onBlur={handleCitizenIdBlur}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            // Chỉ cho nhập số
+                            if (/^\d*$/.test(value)) {
+                                setFormData((prev) => ({ ...prev, citizenId: value }));
+                            }
+                        }}
+                        onBlur={() => {
+                            const value = formData.citizenId;
+                            if (value && (value.length < 9 || value.length > 13)) {
+                                setCitizenIdError(true);
+                            } else {
+                                setCitizenIdError(false);
+                            }
+                        }}
                         className={`w-full border rounded-md p-2 ${citizenIdError ? "border-red-500" : "border-gray-300"
                             }`}
                         maxLength={13}
-                        placeholder="Nhập 13 số CCCD"
+                        placeholder="Nhập CCCD từ 9 đến 13 số"
                     />
                     {citizenIdError && (
                         <p className="text-red-500 text-sm mt-1">
-                            CCCD phải gồm đúng 13 chữ số
+                            CCCD phải gồm từ 9 đến 13 chữ số
                         </p>
                     )}
                 </div>
 
                 {/* Phân loại khách hàng */}
                 <div>
-                    <label className="block mb-1 font-medium">Loại khách hàng</label>
+                    <label className="block mb-1 font-medium">Loại khách hàng<span className="text-red-500">*</span></label>
                     <select
                         name="customerType"
                         value={formData.customerType}
@@ -281,7 +294,7 @@ export default function AddCustomer() {
 
                 {/* Địa chỉ (tùy chọn) */}
                 <div className="col-span-2">
-                    <label className="block mb-1 font-medium">Địa chỉ</label>
+                    <label className="block mb-1 font-medium">Địa chỉ<span className="text-red-500">*</span></label>
                     <input
                         type="text"
                         name="address"
@@ -293,7 +306,7 @@ export default function AddCustomer() {
 
                 {/* Số điện thoại (bắt buộc) + Email (tùy chọn) */}
                 <div>
-                    <label className="block mb-1 font-medium">Số điện thoại</label>
+                    <label className="block mb-1 font-medium">Số điện thoại<span className="text-red-500">*</span></label>
                     <input
                         type="tel"
                         name="phone"
