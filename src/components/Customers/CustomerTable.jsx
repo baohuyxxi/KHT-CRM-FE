@@ -11,7 +11,7 @@ export default function CustomerTable({ data, startIndex, handleEdit, handleDele
                         <th className="p-2 border w-32">Số CCCD</th>
                         <th className="p-2 border w-32">Tên</th>
                         <th className="p-2 border w-60">Cty/Hộ KD</th>
-                        <th className="p-2 border w-32">Hoạt động</th>
+                        <th className="p-2 border w-32">Đơn hàng</th>
                         <th className="p-2 border w-32 text-center">Hành động</th>
                     </tr>
                 </thead>

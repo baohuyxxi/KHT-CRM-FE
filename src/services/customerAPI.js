@@ -8,8 +8,8 @@ export const updateCustomer = (id, data) => {
     return api.put(`/customers/update/${id}`, data);
 }
 
-export const getCustomers = () => {
-    return api.get('/customers');
+export const getCustomers = (type, page, limit) => {
+    return api.get(`/customers?type=${type}&page=${page}&limit=${limit}`);
 }
 
 export const getCustomerById = (id) => {

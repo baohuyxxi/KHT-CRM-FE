@@ -8,10 +8,23 @@ export const updateOrder = (id, orderData) => {
     return api.put(`/orders/update/${id}`, orderData);
 }
 
-export const getOrders = () => {
-    return api.get('/orders');
+export const getOrders = (type, page, limit) => {
+    return api.get(`/orders?type=${type}&page=${page}&limit=${limit}`);
 }
 
 export const getOrderById = (id) => {
     return api.get(`/orders/${id}`);
+}
+
+export const extendOrder = (id, data) => {
+    return api.post(`/orders/extend/${id}`, data);
+}
+
+export const getOrdersByCustomerId = (id) => {
+    return api.get(`/orders/customer/${id}`);
+}
+
+export const filterOrders = (filters) => {
+    const query = new URLSearchParams({ ...filters }).toString();
+    return api.get(`/orders/filter/search?${query}`);
 }

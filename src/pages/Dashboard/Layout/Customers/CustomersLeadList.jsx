@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CustomerTable from "~/components/Customers/CustomerTable";
-import PaginationUI from "~/components/Pagination";
+import Pagination from "@mui/material/Pagination";
 import { getCustomers } from "~/services/customerAPI";
 
 // Skeleton row
@@ -28,19 +28,12 @@ export default function CustomerList() {
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const itemsPerPage = 50;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-
 
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const response = await getCustomers("Đã là khách hàng", currentPage, itemsPerPage);
+      const response = await getCustomers("Tiềm năng", 1, 20);
       setCustomers(Array.isArray(response.data.data) ? response.data.data : []);
-      setTotalPages(response.data.totalPage || 1);
     } finally {
       setLoading(false);
     }
@@ -48,9 +41,10 @@ export default function CustomerList() {
 
   useEffect(() => {
     fetchCustomers();
-  }, [currentPage]);
+  }, []);
 
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   const handleEdit = (id) => navigate(`/customers/edit/${id}`, { state: { id: id } });
   const handleDelete = (id) => {
@@ -60,7 +54,10 @@ export default function CustomerList() {
   };
   const handleAdd = () => navigate("/customers/add");
 
-
+  // Pagination
+  const totalPages = Math.ceil(customers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = customers.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="p-6">
@@ -78,7 +75,7 @@ export default function CustomerList() {
         <TableSkeleton rows={8} />
       ) : (
         <CustomerTable
-          data={customers}
+          data={currentData}
           startIndex={startIndex}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
@@ -86,11 +83,18 @@ export default function CustomerList() {
       )}
 
       {!loading && (
-        <PaginationUI
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
+        <div className="flex justify-center py-6">
+          <Pagination
+            count={totalPages || 1} // ✅ đảm bảo không undefined
+            page={currentPage}
+            onChange={(e, value) => setCurrentPage(value)}
+            color="primary"
+            variant="outlined"
+            shape="rounded"
+            siblingCount={1} // hiển thị số trang liền kề
+            boundaryCount={1} // hiển thị trang đầu & cuối
+          />
+        </div>
       )}
     </div>
   );

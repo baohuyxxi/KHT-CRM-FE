@@ -150,10 +150,17 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
 
                 {/* Trạng thái hoạt động */}
                 <td className="p-2 border text-center">
-                    {c.active ? (
-                        <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">Hoạt động</span>
+                    {c.orders && c.orders.length > 0 ? (
+                        <button
+                            onClick={() => navigate(`/customers/${c.cusId}/orders`)}
+                            className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
+                        >
+                            Xem đơn hàng
+                        </button>
                     ) : (
-                        <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">Ngưng</span>
+                        <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">
+                            Ngưng
+                        </span>
                     )}
                 </td>
 
