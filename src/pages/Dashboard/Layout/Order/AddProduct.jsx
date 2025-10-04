@@ -24,7 +24,7 @@ export default function AddOrder() {
     busId: "",
     busTaxId: "",
     busName: "",
-    registerDate: "",
+    registerDate: new Date().toISOString().split("T")[0],
     startDate: "",
     guarantee: "",
     expire: "Không có",
@@ -56,6 +56,9 @@ export default function AddOrder() {
   useEffect(() => {
     if (id) {
       fetchOrder(id);
+    }
+    if(state?.cusId){
+      fetchCustomerById(state.cusId);
     }
     if (state && state.item) {
       const item = state.item;
@@ -137,6 +140,7 @@ export default function AddOrder() {
   };
 
   const fetchCustomerById = async (id) => {
+    console.log("fetchCustomerById with id:", id);
     const res = await getCustomerById(id);
     if (res) {
       const data = res.data.data;

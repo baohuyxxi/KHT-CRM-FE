@@ -23,17 +23,13 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedCus, setSelectedCus] = useState(null);
 
-    const handleDeleteClick = (cus) => {
-        setSelectedCus(cus);
-        setDeleteDialogOpen(true);
-    };
 
     const handleConfirmDelete = async () => {
         if (!selectedCus) return;
-        try {
+        try {c
             // await handleDelete(selectedBusId); // gọi API xóa
         } catch (err) {
-            console.error(err);
+            console.error(err);c
         } finally {
             setDeleteDialogOpen(false);
             setSelectedCus(null);
@@ -152,15 +148,23 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
                 <td className="p-2 border text-center">
                     {c.orders && c.orders.length > 0 ? (
                         <button
-                            onClick={() => navigate(`/customers/${c.cusId}/orders`)}
+                            onClick={() => {
+                                navigate(`/customers/${c.cusId}/orders`, {
+                                    state: { cus: c.businesses },
+                                })
+                            }}
                             className="px-2 py-1 text-xs rounded bg-blue-500 text-white hover:bg-blue-600"
                         >
                             Xem đơn hàng
                         </button>
                     ) : (
-                        <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">
-                            Ngưng
-                        </span>
+                        <button
+                            onClick={() => navigate(`/orders/add`, { state: { cusId: c.cusId } })}
+                            className="px-2 py-1 text-xs rounded bg-orange-500 text-white hover:bg-orange-600"
+                        >
+                            Tạo đơn hàng
+                        </button>
+
                     )}
                 </td>
 
