@@ -20,8 +20,8 @@ export const extendOrder = (id, data) => {
     return api.post(`/orders/extend/${id}`, data);
 }
 
-export const getOrdersByCustomerId = (id) => {
-    return api.get(`/orders/customer/${id}`);
+export const getOrdersByCustomerId = (id, page, limit) => {
+    return api.get(`/orders/customer/${id}?page=${page}&limit=${limit}`);
 }
 
 export const filterOrders = (filters) => {

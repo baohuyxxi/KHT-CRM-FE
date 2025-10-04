@@ -49,6 +49,5 @@ export const deleteBusiness = (id) => {
 }
 
 export const linkCustomerToBusiness = (busId, cusId) => {
-    console.log("Linking customer", cusId, "to business", busId);
     return api.put(`/businesses/link-customer/${busId}`, { cusId });
 }
