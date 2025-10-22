@@ -10,6 +10,47 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
         items: [],
     });
 
+    function convertNumberToWords(number) {
+        if (number === 0) return "Không";
+        const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+        const teens = ["mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm", "mười sáu", "mười bảy", "mười tám", "mười chín"];
+        const tens = ["", "", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
+        const scales = ["", "nghìn", "triệu", "tỷ"];
+
+        function readThreeDigits(num) {
+            let hundred = Math.floor(num / 100);
+            let ten = Math.floor((num % 100) / 10);
+            let unit = num % 10;
+            let words = "";
+
+            if (hundred > 0) {
+                words += units[hundred] + " trăm";
+                if (ten === 0 && unit > 0) words += " linh";
+            }
+            if (ten > 1) {
+                words += " " + tens[ten];
+                if (unit > 0) words += " " + units[unit];
+            } else if (ten === 1) {
+                words += " " + teens[unit];
+            } else if (ten === 0 && unit > 0 && hundred === 0) {
+                words += " " + units[unit];
+            }
+
+            return words.trim();
+        }
+
+        const parts = [];
+        let scale = 0;
+        while (number > 0) {
+            const chunk = number % 1000;
+            if (chunk > 0) parts.unshift(readThreeDigits(chunk) + " " + scales[scale]);
+            number = Math.floor(number / 1000);
+            scale++;
+        }
+
+        return parts.join(" ").replace(/\s+/g, " ").trim();
+    }
+
     // ✅ Cập nhật khi props thay đổi
     useEffect(() => {
         if (open) {
@@ -60,12 +101,42 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
     return (
         <>
             <style>{`
-        @media print {
-          body * { visibility: hidden; }
-          .print-area, .print-area * { visibility: visible; }
-          .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-      `}</style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .print-area, .print-area * {
+      visibility: visible;
+    }
+    .print-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      font-family: 'Times New Roman', Times, serif !important;
+      font-size: 22px !important; /* tăng 1-2 size */
+      line-height: 1.7 !important;
+    }
+    .print-area h1,
+    .print-area h2 {
+      font-size: 24px !important;
+    }
+    .print-area table th,
+    .print-area table td {
+      padding: 6px 8px !important;
+      font-size: 18px !important;
+    }
+  }
+`}</style>
+<style>{`
+  @media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+    .print-area .flex { flex-wrap: nowrap !important; }
+    .print-area p, .print-area li { font-size: 17px !important; line-height: 1.4 !important; }
+  }
+`}</style>
 
             <Transition appear show={open} as={Fragment}>
                 <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -201,33 +272,73 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
                             </div>
 
                             {/* Preview hóa đơn */}
-                            <div ref={printRef} className="print-area border p-4">
-                                <h1 className="text-center font-bold text-xl mb-4">
-                                    HÓA ĐƠN BÁN HÀNG
-                                </h1>
-                                <p>
-                                    <strong>Khách hàng:</strong> {invoiceData.customer.name}
-                                </p>
-                                <p>
-                                    <strong>MST:</strong> {invoiceData.customer.taxCode}
-                                </p>
-                                <p>
-                                    <strong>Địa chỉ:</strong> {invoiceData.customer.address}
-                                </p>
-                                <p>
-                                    <strong>Điện thoại:</strong> {invoiceData.customer.phone}
-                                </p>
+                            <div ref={printRef} className="print-area p-6 text-sm leading-6" style={{ fontFamily: "'Times New Roman', serif'" }}>
+                                {/* THÔNG TIN BÊN BÁN */}
+                                <div className="mb-4" style={{ fontFamily: "'Times New Roman', serif", fontSize: "16px" }}>
+                                    <div className="flex justify-between items-start w-full flex-nowrap">
 
+                                        {/* CỘT TRÁI - THÔNG TIN CÔNG TY */}
+                                        <div className="w-[60%] leading-snug">
+                                            <p><strong>CÔNG TY TNHH THƯƠNG MẠI DỊCH VỤ KIM HỒNG THỊNH</strong></p>
+                                            <p><strong>Mã số thuế:</strong> 1801784943</p>
+                                            <p><strong>ĐC:</strong> C4-14, Đường 14A, KDC Hoàng Quân, P. Cái Răng, TP Cần Thơ</p>
+                                            <p><strong>Điện thoại:</strong> 03.6666.0237</p>
+                                            <p><strong>STK:</strong> 39791368 Ngân Hàng Quân đội - MBBank Chi nhánh Bến Tre</p>
+                                        </div>
+
+                                        {/* CỘT PHẢI - SẢN PHẨM / DỊCH VỤ */}
+<div
+  className="w-[38%] text-left leading-snug"
+  style={{ whiteSpace: "nowrap" }}
+>
+  {/* TIÊU ĐỀ CHUYÊN CUNG CẤP */}
+  <p className="font-bold underline text-center mb-1 justify-start">CHUYÊN CUNG CẤP:</p>
+
+  {/* HAI CỘT NỘI DUNG */}
+  <div className="flex justify-between flex-nowrap">
+    {/* SẢN PHẨM */}
+    <div style={{ marginRight: "20px" }}>
+      <p className="font-bold underline mb-1">SẢN PHẨM:</p>
+      <p>- Phần mềm giải pháp CNTT</p>
+      <p>- Tư vấn kế toán dịch vụ</p>
+    </div>
+
+    {/* DỊCH VỤ */}
+    <div>
+      <p className="font-bold underline mb-1">DỊCH VỤ:</p>
+      <p>- Tư vấn ĐK, Thành lập DN</p>
+      <p>- Bảo hộ thương hiệu</p>
+    </div>
+  </div>
+</div>
+                                    </div>
+
+                                    <hr className="my-2 border-black" />
+
+                                    <div className="text-center">
+                                        <h2 className="text-xl font-bold underline">ĐƠN HÀNG</h2>
+                                    </div>
+                                </div>
+
+                                {/* THÔNG TIN KHÁCH HÀNG */}
+                                <div className="mb-3">
+                                    <p><strong>Khách hàng:</strong> {invoiceData.customer.name}</p>
+                                    <p><strong>Mã số thuế:</strong> {invoiceData.customer.taxCode}</p>
+                                    <p><strong>Địa chỉ:</strong> {invoiceData.customer.address}</p>
+                                    <p><strong>Điện thoại:</strong> {invoiceData.customer.phone}</p>
+                                </div>
+
+                                {/* BẢNG HÀNG HÓA */}
                                 <table className="w-full border-collapse border my-4 text-sm">
-                                    <thead>
+                                    <thead className="bg-gray-100">
                                         <tr>
-                                            <th className="border px-2 py-1">STT</th>
-                                            <th className="border px-2 py-1">Tên hàng</th>
-                                            <th className="border px-2 py-1">ĐVT</th>
-                                            <th className="border px-2 py-1">SL</th>
-                                            <th className="border px-2 py-1">Đơn giá</th>
-                                            <th className="border px-2 py-1">Thành tiền</th>
-                                            <th className="border px-2 py-1">Ghi chú</th>
+                                            <th className="border px-2 py-1 w-[4%]">STT</th>
+                                            <th className="border px-2 py-1">Tên hàng hóa, dịch vụ</th>
+                                            <th className="border px-2 py-1 w-[8%]">ĐVT</th>
+                                            <th className="border px-2 py-1 w-[8%]">Số lượng</th>
+                                            <th className="border px-2 py-1 w-[15%]">Đơn giá</th>
+                                            <th className="border px-2 py-1 w-[15%]">Thành tiền</th>
+                                            <th className="border px-2 py-1 w-[15%]">Ghi chú</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -237,21 +348,44 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
                                                 <td className="border px-2">{item.name}</td>
                                                 <td className="border px-2 text-center">{item.unit}</td>
                                                 <td className="border px-2 text-center">{item.qty}</td>
-                                                <td className="border px-2 text-right">
-                                                    {item.price.toLocaleString()}
-                                                </td>
-                                                <td className="border px-2 text-right">
-                                                    {(item.qty * item.price).toLocaleString()}
-                                                </td>
+                                                <td className="border px-2 text-right">{item.price.toLocaleString()}</td>
+                                                <td className="border px-2 text-right">{(item.qty * item.price).toLocaleString()}</td>
                                                 <td className="border px-2">{item.note || "-"}</td>
                                             </tr>
                                         ))}
+                                        <tr>
+                                            <td colSpan={5} className="border px-2 text-right font-bold">
+                                                Tổng cộng:
+                                            </td>
+                                            <td className="border px-2 text-right font-bold">
+                                                {total.toLocaleString()} VND
+                                            </td>
+                                            <td className="border"></td>
+                                        </tr>
                                     </tbody>
                                 </table>
 
-                                <p className="text-right font-bold">
-                                    Tổng cộng: {total.toLocaleString()} VND
+                                {/* TỔNG CỘNG BẰNG CHỮ */}
+                                <p className="mt-2">
+                                    <strong>Tổng cộng (bằng chữ):</strong>{" "}
+                                    {convertNumberToWords(total)} đồng
                                 </p>
+
+                                {/* CHỮ KÝ */}
+                                <div className="grid grid-cols-3 text-center mt-10">
+                                    <div>
+                                        <p className="font-semibold">Người mua hàng</p>
+                                        <p className="italic">(Ký, ghi rõ họ tên)</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">Người bán hàng</p>
+                                        <p className="italic">(Ký, ghi rõ họ tên)</p>
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">Thủ trưởng đơn vị</p>
+                                        <p className="italic">(Ký, ghi rõ họ tên)</p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Footer */}

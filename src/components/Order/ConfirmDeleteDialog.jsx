@@ -1,17 +1,16 @@
-import { useState } from "react";
 import { X } from "lucide-react";
 
-export default function ConfirmDeleteDialog({ item, onConfirm, onClose }) {
+export default function ConfirmDeleteOrderDialog({ order, onConfirm, onClose }) {
     return (
         <>
-            {!item?.businesses?.length ?
+            {order.paymentStatus === "Chưa thanh toán" ? (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-                    onClick={onClose} // click ngoài đóng dialog
+                    onClick={onClose}
                 >
                     <div
                         className="bg-white rounded-lg shadow-lg w-full max-w-sm p-4 relative"
-                        onClick={(e) => e.stopPropagation()} // ngăn click vào dialog đóng
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <button
                             onClick={onClose}
@@ -20,8 +19,11 @@ export default function ConfirmDeleteDialog({ item, onConfirm, onClose }) {
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h2 className="text-lg font-semibold mb-4">Xác nhận xóa</h2>
-                        <p className="mb-4">Bạn có chắc chắn muốn xóa khách hàng <span className="font-semibold">{item?.firstName} {item?.lastName}</span> không?</p>
+                        <h2 className="text-lg font-semibold mb-4">Xác nhận xóa đơn hàng</h2>
+                        <p className="mb-4">
+                            Bạn có chắc chắn muốn xóa đơn hàng{" "}
+                            <span className="font-semibold text-blue-600">#{order.ordId}</span> không?
+                        </p>
 
                         <div className="flex justify-end gap-3">
                             <button
@@ -38,13 +40,15 @@ export default function ConfirmDeleteDialog({ item, onConfirm, onClose }) {
                             </button>
                         </div>
                     </div>
-                </div> : <div
+                </div>
+            ) : (
+                <div
                     className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-                    onClick={onClose} // click ngoài đóng dialog
+                    onClick={onClose}
                 >
                     <div
                         className="bg-white rounded-lg shadow-lg w-full max-w-sm p-4 relative"
-                        onClick={(e) => e.stopPropagation()} // ngăn click vào dialog đóng
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <button
                             onClick={onClose}
@@ -53,18 +57,21 @@ export default function ConfirmDeleteDialog({ item, onConfirm, onClose }) {
                             <X className="w-5 h-5" />
                         </button>
 
-                        <h2 className="text-lg font-semibold mb-4">Thông báo</h2>
-                        <p className="mb-4 text-red-600">Khách hàng này đang có doanh nghiệp liên kết, không thể xóa!</p>
+                        <h2 className="text-lg font-semibold mb-4">Không thể xóa</h2>
+                        <p className="mb-4 text-red-600">
+                            Đơn hàng này đã thanh toán, không thể xóa!
+                        </p>
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={onClose}
                                 className="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
                             >
-                                Hủy
+                                Đóng
                             </button>
                         </div>
                     </div>
                 </div>
-            }</>
+            )}
+        </>
     );
 }

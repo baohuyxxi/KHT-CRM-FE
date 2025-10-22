@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogTitle,
@@ -8,10 +9,42 @@ import {
 } from "@mui/material";
 import PaginationUI from "../Pagination";
 import { useState } from "react";
+import ConfirmDeleteOrderDialog from "./ConfirmDeleteDialog";
+import { deleteOrder } from "~/services/orderAPI";
+import Toast from "../Toast";
 
-export default function UsageTable({ data, handleEdit, handleDelete, currentPage, totalPages, onPageChange }) {
+export default function UsageTable({ data, handleEdit, currentPage, totalPages, onPageChange }) {
   const navigate = useNavigate();
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedDel, setSelectedDel] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000); // auto hide sau 3s
+  };
+
+  const handleConfirmDelete = async (item) => {
+    try {
+      const res = await deleteOrder(item.ordId);
+      if (res.status === 200) {
+        setShowConfirm(false);
+        showToast("Xóa đơn hàng thành công!", "success");
+        // Cập nhật lại danh sách sau khi xóa
+        onPageChange(1); // Quay về trang 1 sau khi xóa
+
+      } else {
+        setShowConfirm(false);
+        showToast("Xóa đơn hàng thất bại!", "error");
+      }
+    } catch (error) {
+      setShowConfirm(false);
+      showToast("Đã có lỗi xảy ra khi xóa đơn hàng!", "error");
+    } finally {
+      setSelectedDel(null);
+    }
+  };
 
   const handleRowClick = (order) => {
     setSelectedOrder(order);
@@ -158,14 +191,14 @@ export default function UsageTable({ data, handleEdit, handleDelete, currentPage
                       )}
 
                       {/* Nếu không có hạn */}
-                      {!item.expectedEnd && (
+                      {/* {!item.expectedEnd && (
                         <button
                           onClick={() => console.log("Mua thêm:", item.ordId)}
                           className="mt-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-xs"
                         >
                           Mua thêm
                         </button>
-                      )}
+                      )} */}
                     </div>
                   );
                 })()}
@@ -197,15 +230,18 @@ export default function UsageTable({ data, handleEdit, handleDelete, currentPage
                 <div className="flex justify-center gap-2">
                   <button
                     onClick={() => handleEdit(item.ordId)}
-                    className="px-3 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
+                    className="p-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition-colors"
+                    title="Sửa"
                   >
-                    Sửa
+                    <Pencil className="w-4 h-4" />
                   </button>
+
                   <button
-                    onClick={() => handleDelete(item.ordId)}
-                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    onClick={() => { setSelectedDel(item); setShowConfirm(true); }}
+                    className="p-2 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+                    title="Xóa"
                   >
-                    Xóa
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </td>
@@ -251,6 +287,14 @@ export default function UsageTable({ data, handleEdit, handleDelete, currentPage
           </Button>
         </DialogActions>
       </Dialog>
+      {showConfirm && (
+        <ConfirmDeleteOrderDialog
+          order={selectedDel}
+          onConfirm={() => handleConfirmDelete(selectedDel)}
+          onClose={() => setShowConfirm(false)}
+        />
+      )}
+      {toast && <Toast message={toast.message} type={toast.type} />}
     </div>
   );
 }

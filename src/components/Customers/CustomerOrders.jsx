@@ -112,7 +112,6 @@ export default function CustomerUsage() {
             <UsageTable
               data={products}
               handleEdit={(ordId) => handleEdit(ordId, "sản phẩm")}
-              handleDelete={(ordId) => handleDelete(ordId, "sản phẩm")}
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}

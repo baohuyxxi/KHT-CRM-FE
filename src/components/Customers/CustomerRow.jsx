@@ -6,14 +6,16 @@ import BusinessModal from "./BusinessModel";
 import Toast from "../Toast";
 import LinkBusinessDialog from "./LinkBusiness";
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
+import { deleteCustomer } from "~/services/customerAPI";
 
-export default function CustomerRow({ c, index, startIndex, handleEdit, handleDelete }) {
+export default function CustomerRow({ c, index, startIndex, handleEdit }) {
     const [open, setOpen] = useState(false);
     const [selectedCusId, setSelectedCusId] = useState(null);
+    const [selectedDel, setSelectedDel] = useState(null);
     const navigate = useNavigate();
     const [openDialog, setOpenDialog] = useState(false);
     // Link business dialog
-    const { toast, setToast } = useState(null);
+    const [toast, setToast] = useState(null);
     // Hàm hiện toast
     const showToast = (message, type = "success") => {
         setToast({ message, type });
@@ -21,19 +23,30 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
     };
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [selectedCus, setSelectedCus] = useState(null);
-
 
     const handleConfirmDelete = async () => {
-        if (!selectedCus) return;
-        try {c
-            // await handleDelete(selectedBusId); // gọi API xóa
+        if (!selectedDel) return;
+        try {
+            const res = await deleteCustomer(selectedDel.cusId); // gọi API xóa
+            if (res.status === 200) {
+                setDeleteDialogOpen(false);
+                // setCustomers((prev) => prev.filter((c) => c.cusId !== selectedDel.cusId)); // cập nhật lại danh sách
+                showToast("Xóa khách hàng thành công");
+            } else {
+                setDeleteDialogOpen(false);
+                showToast("Lỗi khi xóa khách hàng!", "error");
+            }
         } catch (err) {
-            console.error(err);c
-        } finally {
             setDeleteDialogOpen(false);
-            setSelectedCus(null);
+            showToast("Lỗi khi xóa khách hàng!", "error");
+        } finally {
+            setSelectedDel(null);
         }
+    };
+
+    const handleDeleteClick = (customer) => {
+        setSelectedDel(customer);
+        setDeleteDialogOpen(true);
     };
 
     const handleOpenModal = (cusId) => {
@@ -42,7 +55,7 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
     };
 
     return (
-        <>
+        <><>
             <tr className="hover:bg-gray-50">
                 {/* STT */}
                 <td className="p-2 border text-center">{startIndex + index + 1}</td>
@@ -188,6 +201,14 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
                     </div>
                 </td>
             </tr >
+            {deleteDialogOpen && (
+                <ConfirmDeleteDialog
+                    item={selectedDel}
+                    onConfirm={handleConfirmDelete}
+                    onClose={() => setDeleteDialogOpen(false)}
+                />
+            )}
+            </>
 
             {/* Gắn modal */}
             {toast && <Toast message={toast.message} type={toast.type} />}
@@ -198,13 +219,7 @@ export default function CustomerRow({ c, index, startIndex, handleEdit, handleDe
                     onClose={() => setOpen(false)}
                 />
             )}
-            {deleteDialogOpen && (
-                <ConfirmDeleteDialog
-                    item={selectedCus}
-                    onConfirm={handleConfirmDelete}
-                    onClose={() => setDeleteDialogOpen(false)}
-                />
-            )}
+            
         </>
     );
 }

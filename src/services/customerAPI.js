@@ -16,3 +16,7 @@ export const getCustomerById = (id) => {
     return api.get(`/customers/${id}`);
 }
 
+export const deleteCustomer = (id) => {
+    return api.delete(`/customers/delete/${id}`);
+}   
+

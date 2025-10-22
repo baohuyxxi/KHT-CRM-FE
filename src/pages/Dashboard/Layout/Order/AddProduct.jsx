@@ -57,7 +57,7 @@ export default function AddOrder() {
     if (id) {
       fetchOrder(id);
     }
-    if(state?.cusId){
+    if (state?.cusId) {
       fetchCustomerById(state.cusId);
     }
     if (state && state.item) {
@@ -90,39 +90,23 @@ export default function AddOrder() {
 
   // --- danh sách sản phẩm ---
   const products = [
-    { name: "COMBO MÁY POS BÁN HÀNG", price: "15990000" },
-    { name: "Combo POS365 1 năm + 300 HĐĐT & CKS", price: "2840000" },
-    { name: "Chữ ký số - Viettel CA", price: "" },
-    { name: "Hóa đơn điện tử - Viettel Invoice", price: "" },
+    { name: "Chữ ký số Viettel", price: "" },
+    { name: "Hóa đơn điện tử Viettel", price: "" },
+    { name: "Tendoo", price: "" },
+    { name: "Chữ ký số Easy-CA", price: "" },
+    { name: "Hóa đơn điện tử Easy-Invoice", price: "" },
+    { name: "EasyPos", price: "" },
     { name: "POS365", price: "" },
-    { name: "MÁY TRẠM VĂN PHÒNG HP Z2 G4 Core I5 8400 - RAM 8GB - SSD 256GB", price: "7900000" },
-    { name: "NGĂN KÉO ĐỰNG TIỀN PA (10 NGĂN)", price: "1150000" },
-    { name: "DELL THIẾT KẾ KHỦNG T5820", price: "16500000" },
-    { name: "🧾 GIẤY IN NHIỆT K80x45 & K80x80", price: "" },
-    { name: "GIẤY IN NHIỆT K57x45 & K57-38", price: "" },
-    { name: "GIẤY IN TEM 50x30 PA 2 Lốc", price: "240000" },
-    { name: "MÁY QUÉT ĐA TIA PA", price: "2990000" },
-    { name: "MÁY QUÉT MÃ VẠCH ĐƠN TIA DATAMAX PA – C1200", price: "1790000" },
-    { name: "MÁY QUÉT MÃ VẠCH ĐƠN TIA PA – QW2120", price: "2490000" },
-    { name: "NGĂN KÉO ĐỰNG TIỀN PA (4 NGĂN)", price: "750000" },
-    { name: "Máy in mã vạch GODEX G500U", price: "4200000" },
-    { name: "🖨️ MÁY IN MÃ VẠCH XPRINTER XP-TT426B", price: "" },
-    { name: "Máy in mã vạch HPRT HT330", price: "" },
-    { name: "Máy in nhiệt 888BT AYIN", price: "1790000" },
-    { name: "MÁY IN BILL ZYWEL USB +LAN", price: "1690000" },
-    { name: "MÁY POS PAC2S", price: "4990000" },
-    { name: "Máy D2A POS Terminal (2 màn hình)", price: "10990000" },
-    { name: "Máy D2A POS Terminal (1 màn hình)", price: "8800000" },
-    { name: "BỘ THIẾT BỊ THÔNG BÁO ORDER (16 THẺ)", price: "3400000" },
-    { name: "Máy tính bàn Core i7", price: "10990000" },
-    { name: "Bộ máy tính bàn Dell Core i5", price: "9290000" },
-    { name: "Viettel", price: "" },
-    { name: "EasyDocs", price: "" },
-    { name: "EasyCA", price: "" },
-    { name: "Viettel BHXH", price: "" },
-    { name: "Viettel Tra cứu Hóa đơn", price: "" },
-    { name: "easyHRM", price: "" },
+    { name: "Phần mềm quầy thuốc TLgo", price: "4000000" },
+    { name: "Bộ PC Dell Core i3", price: "" },
+    { name: "Bộ PC Dell Core i5", price: "9290000" },
+    { name: "Bộ PC Dell Core i7", price: "10990000" },
+    { name: "TingBox", price: "" },
+    { name: "Két tiền", price: "1150000" },
+    { name: "Máy quét mã vạch", price: "1790000" },
+    { name: "Máy in Bill Zywel", price: "1690000" },
   ];
+
 
   // --- hàm format giá ---
   const formatPrice = (value) => {
@@ -140,7 +124,6 @@ export default function AddOrder() {
   };
 
   const fetchCustomerById = async (id) => {
-    console.log("fetchCustomerById with id:", id);
     const res = await getCustomerById(id);
     if (res) {
       const data = res.data.data;
@@ -163,19 +146,35 @@ export default function AddOrder() {
   // --- tính expectedEnd ---
   useEffect(() => {
     if (!formData.startDate) return;
-    if (formData.expire === "Vĩnh viễn" || formData.expire === "Không có") {
+
+    const value = formData.expire;
+
+    // Các trường hợp đặc biệt
+    if (value === "Vĩnh viễn" || value === "Không có") {
       setFormData((prev) => ({ ...prev, expectedEnd: "" }));
       return;
     }
 
-    const months = parseInt(formData.expire);
+    const start = new Date(formData.startDate);
+    const end = new Date(start); // tạo bản sao để không mutate `start`
+    const months = parseFloat(value); // dùng parseFloat để nhận giá trị thập phân như 0.5
+
     if (!isNaN(months)) {
-      const start = new Date(formData.startDate);
-      const end = new Date(start.setMonth(start.getMonth() + months));
+      if (months === 0.5) {
+        // Dùng thử 14 ngày
+        end.setDate(end.getDate() + 14);
+      } else {
+        // Cộng theo số tháng
+        end.setMonth(end.getMonth() + months);
+      }
+
       setFormData((prev) => ({
         ...prev,
         expectedEnd: end.toISOString().split("T")[0],
       }));
+    } else {
+      // Trường hợp khác (phòng lỗi)
+      setFormData((prev) => ({ ...prev, expectedEnd: "" }));
     }
   }, [formData.startDate, formData.expire]);
 
@@ -414,8 +413,11 @@ export default function AddOrder() {
                 >
                   <option value="Không có">Không có</option>
                   <option value="Vĩnh viễn">Vĩnh viễn</option>
+                  <option key={1} value={0.5}>Dùng thử</option>
                   {Array.from({ length: 48 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{i + 1} tháng</option>
+                    <option key={i + 2} value={i + 2}>
+                      {i + 1} tháng
+                    </option>
                   ))}
                 </select>
               </div>
