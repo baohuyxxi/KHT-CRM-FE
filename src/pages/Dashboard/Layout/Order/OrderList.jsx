@@ -74,15 +74,6 @@ export default function CustomerUsage() {
   const handleAddService = () => navigate("/orders/add?type=DV");
 
   const handleEdit = (id, type) => navigate(`/orders/edit/${id}`, { state: { id, type } });
-  const handleDelete = (id, type) => {
-    if (confirm(`Bạn có chắc muốn xóa ${type} này?`)) {
-      if (type === "sản phẩm") {
-        setProducts(products.filter((p) => p.ordId !== id));
-      } else {
-        setServices(services.filter((s) => s.ordId !== id));
-      }
-    }
-  };
 
   // ✅ Bấm Lọc
   const handleFilterSP = () => {
@@ -143,7 +134,6 @@ export default function CustomerUsage() {
                 <UsageTable
                   data={products}
                   handleEdit={(id) => handleEdit(id, "sản phẩm")}
-                  handleDelete={(id) => handleDelete(id, "sản phẩm")}
                   currentPage={currentPageSP}
                   totalPages={totalPagesSP}
                   onPageChange={(page) => {
@@ -177,7 +167,6 @@ export default function CustomerUsage() {
                 <UsageTable
                   data={services}
                   handleEdit={(id) => handleEdit(id, "dịch vụ")}
-                  handleDelete={(id) => handleDelete(id, "dịch vụ")}
                   currentPage={currentPageDV}
                   totalPages={totalPagesDV}
                   onPageChange={(page) => setCurrentPageDV(page)}

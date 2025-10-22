@@ -28,3 +28,7 @@ export const filterOrders = (filters) => {
     const query = new URLSearchParams({ ...filters }).toString();
     return api.get(`/orders/filter/search?${query}`);
 }
+
+export const deleteOrder = (id) => {
+    return api.delete(`/orders/delete/${id}`);
+}

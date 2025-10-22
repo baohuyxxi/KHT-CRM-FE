@@ -8,6 +8,13 @@ const routesConfig = [
     // ❌ không cần roles => tất cả roles đều thấy
   },
   {
+    name: "Khách hàng thị trường",
+    path: "/prospects",
+    icon: "MdPersonSearch",
+    showInSidebar: true,
+    showInDropdown: false,
+  },
+  {
     name: "Khách hàng tiềm năng",
     path: "/leads",
     icon: "MdPersonSearch",

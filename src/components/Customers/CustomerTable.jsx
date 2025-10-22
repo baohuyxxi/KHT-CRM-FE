@@ -1,6 +1,6 @@
 import CustomerRow from "./CustomerRow";
 
-export default function CustomerTable({ data, startIndex, handleEdit, handleDelete }) {
+export default function CustomerTable({ data, startIndex, handleEdit }) {
     return (
         <div className="bg-white shadow-md rounded-lg overflow-x-auto">
             <table className="w-full min-w-[900px] border-collapse">
@@ -24,7 +24,6 @@ export default function CustomerTable({ data, startIndex, handleEdit, handleDele
                                 index={index}
                                 startIndex={startIndex}
                                 handleEdit={handleEdit}
-                                handleDelete={handleDelete}
                             />
                         ))
                     ) : (

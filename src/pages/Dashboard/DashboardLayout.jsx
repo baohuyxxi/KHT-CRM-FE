@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 const AccountManager = lazy(() => import("./Layout/AccountManager"));
 const CustomersList = lazy(() => import("./Layout/Customers/CustomersList"));
 const CustomersListLead = lazy(() => import("./Layout/Customers/CustomersLeadList"));
+const CustomersListPro = lazy(() => import("./Layout/Customers/CustomersProList"));
 const CustomerAddNew = lazy(() => import("./Layout/Customers/CustomerAddNew"));
 const BusinessList = lazy(() => import("./Layout/Business/BusinessList"));
 const BusinessAddNew = lazy(() => import("./Layout/Business/BusinessAddNew"));
@@ -38,6 +39,7 @@ export default function DashboardLayout() {
     "/account": AccountManager,
     "/employees": EmployeeManager,
     "/leads": CustomersListLead,
+    "/prospects": CustomersListPro,
     "/customers": CustomersList,
     "/customers/add": CustomerAddNew,
     "/customers/edit/:id": CustomerAddNew,
