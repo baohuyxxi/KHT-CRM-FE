@@ -162,7 +162,7 @@ export default function AddOrder() {
     if (!isNaN(months)) {
       if (months === 0.5) {
         // Dùng thử 14 ngày
-        end.setDate(end.getDate() + 14);
+        end.setDate(end.getDate() + 15);
       } else {
         // Cộng theo số tháng
         end.setMonth(end.getMonth() + months);
@@ -415,7 +415,7 @@ export default function AddOrder() {
                   <option value="Vĩnh viễn">Vĩnh viễn</option>
                   <option key={1} value={0.5}>Dùng thử</option>
                   {Array.from({ length: 48 }, (_, i) => (
-                    <option key={i + 2} value={i + 2}>
+                    <option key={i + 1} value={i + 1}>
                       {i + 1} tháng
                     </option>
                   ))}
