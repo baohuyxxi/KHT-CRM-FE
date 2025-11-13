@@ -19,6 +19,8 @@ export default function UsageTable({ data, handleEdit, currentPage, totalPages, 
   const [selectedDel, setSelectedDel] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showFileDialog, setShowFileDialog] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -134,12 +136,17 @@ export default function UsageTable({ data, handleEdit, currentPage, totalPages, 
                 onClick={() => handleRowClick(item)}>{item.ordId}</td>
               <td className="px-3 py-3 border border-gray-300 text-center align-middle">{item.type}</td>
               <td className="px-3 py-3 border border-gray-300 max-w-[150px]">
-                <span
-                  className="block truncate"
-                  title={item.name} // hiện tooltip khi hover
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedFiles(item.files || []);
+                    setShowFileDialog(true);
+                  }}
+                  className="block truncate text-blue-600 hover:underline text-left w-full"
+                  title="Bấm để xem hồ sơ"
                 >
                   {item.name}
-                </span>
+                </button>
               </td>
               <td className="px-3 py-3 border border-gray-300 max-w-[150px]">
                 <span className="block truncate" title={item.cusName}>
@@ -295,6 +302,50 @@ export default function UsageTable({ data, handleEdit, currentPage, totalPages, 
         />
       )}
       {toast && <Toast message={toast.message} type={toast.type} />}
+
+      {showFileDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-[500px] max-h-[80vh] overflow-auto p-5 relative">
+            <h3 className="text-lg font-semibold mb-4">📎 Hồ sơ đính kèm</h3>
+
+            {selectedFiles.length > 0 ? (
+              <ul className="space-y-3">
+                {selectedFiles.map((fileUrl, index) => (
+                  <li
+                    key={index}
+                    className="flex justify-between items-center border p-2 rounded bg-gray-50"
+                  >
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline truncate max-w-[70%]"
+                    >
+                      {fileUrl.split("/").pop()} {/* chỉ hiển thị tên file */}
+                    </a>
+                    <a
+                      href={fileUrl}
+                      download
+                      className="text-sm text-gray-500 hover:text-gray-700"
+                    >
+                      Tải xuống
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-sm">Không có hồ sơ nào được đính kèm.</p>
+            )}
+
+            <button
+              onClick={() => setShowFileDialog(false)}
+              className="absolute top-2 right-2 text-gray-600 hover:text-black text-xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

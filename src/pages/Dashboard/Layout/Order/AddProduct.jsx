@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Toast from "~/components/Toast";
 import { getCustomerById } from "~/services/customerAPI";
 import { createOrder, extendOrder, getOrderById, updateOrder } from "~/services/orderAPI";
+import { uploadPDFs } from "~/services/uploadAPI";
 
 export default function AddOrder() {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ export default function AddOrder() {
     paymentStatus: "Chưa thanh toán",
     paid: 0,
     status: "Mới",
+    files: [],
+    issued: false,
   });
 
   const { id } = useParams();
@@ -82,6 +85,8 @@ export default function AddOrder() {
         paymentStatus: "Chưa thanh toán",
         paid: item.paid || 0,
         status: "Mới",
+        files: item.files || [],
+        issued: item.issued || false,
       }));
       setBusinesses([{ cusId: item.cusId, busId: item.busId, busTaxId: item.busTaxId, busName: item.busName, cusCitizenId: item.cusCitizenId }]); // mảng doanh nghiệp liên quan
 
@@ -182,36 +187,72 @@ export default function AddOrder() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoadingButton(true);
-    try {
-      if (id) {
-        const res = await updateOrder(id, formData);
-        if (res) {
-          showToast("Cập nhật đơn hàng thành công!");
-        } else {
-          showToast("Cập nhật đơn hàng thất bại, vui lòng thử lại!", "error");
-        }
-      } else if (state && state?.item) {
-        const res = await extendOrder(state?.item.ordId, formData);
-        if (res) {
-          showToast("Gia hạn/Mua thêm đơn hàng thành công!");
-        } else {
-          showToast("Gia hạn/Mua thêm đơn hàng thất bại, vui lòng thử lại!", "error");
-        }
-      } else {
-        const res = await createOrder(formData);
-        if (res) {
-          showToast("Tạo đơn hàng thành công!");
 
-        } else {
-          showToast("Tạo đơn hàng thất bại, vui lòng thử lại!", "error");
+    try {
+      let finalFormData = { ...formData }; // clone để không mutate state trực tiếp
+
+      // 🔹 Upload file nếu có
+      if (formData.files && formData.files.length > 0) {
+        // Phân loại: file mới (File object) & file đã có (URL string)
+        const newFiles = formData.files.filter((f) => typeof f !== "string");
+        const existingLinks = formData.files.filter((f) => typeof f === "string");
+
+        let uploadedUrls = [];
+
+        // Nếu có file mới, tiến hành upload
+        if (newFiles.length > 0) {
+          const uploadImage = new FormData();
+          newFiles.forEach((file) => {
+            uploadImage.append("files", file);
+          });
+
+          const resUpload = await uploadPDFs(uploadImage);
+
+          if (resUpload?.data?.data?.length) {
+            uploadedUrls = resUpload.data.data.map((file) => file.url);
+          }
         }
+
+        // Gộp link cũ + link mới upload
+        finalFormData = {
+          ...finalFormData,
+          files: [...existingLinks, ...uploadedUrls],
+        };
+      }
+
+
+      let res;
+
+      // 🔹 Nếu có `id` => cập nhật đơn hàng
+      if (id) {
+        res = await updateOrder(id, finalFormData);
+        showToast(
+          res ? "Cập nhật đơn hàng thành công!" : "Cập nhật đơn hàng thất bại, vui lòng thử lại!",
+          res ? "success" : "error"
+        );
+
+        // 🔹 Nếu có `state.item` => gia hạn đơn
+      } else if (state?.item) {
+        res = await extendOrder(state.item.ordId, finalFormData);
+        showToast(
+          res ? "Gia hạn/Mua thêm đơn hàng thành công!" : "Gia hạn/Mua thêm đơn hàng thất bại, vui lòng thử lại!",
+          res ? "success" : "error"
+        );
+
+        // 🔹 Nếu không thì tạo mới
+      } else {
+        res = await createOrder(finalFormData);
+        showToast(
+          res ? "Tạo đơn hàng thành công!" : "Tạo đơn hàng thất bại, vui lòng thử lại!",
+          res ? "success" : "error"
+        );
       }
     } catch (error) {
+      console.error("❌ Error in handleSubmit:", error);
       showToast("Có lỗi xảy ra, vui lòng thử lại!", "error");
     } finally {
       setLoadingButton(false);
     }
-
   };
 
   return (
@@ -443,12 +484,86 @@ export default function AddOrder() {
                 className="w-full border px-3 py-2 rounded"
               />
             </div>
+            {/* --- Thêm phần upload file hồ sơ --- */}
+            <div className="mt-6">
+              <label className="block mb-2 font-medium">📎 Hồ sơ đính kèm</label>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  setFormData((prev) => ({
+                    ...prev,
+                    files: [...(prev.files || []), ...files],
+                  }));
+                }}
+                className="w-full border px-3 py-2 rounded"
+              />
+
+              {/* Danh sách file đã chọn */}
+              {formData.files && formData.files.length > 0 && (
+                <ul className="mt-3 space-y-2">
+                  {formData.files.map((file, index) => {
+                    // Nếu file là object (chưa upload)
+                    const isFileObject = typeof file !== "string";
+                    const fileName = isFileObject
+                      ? file.name
+                      : file.split("/").pop(); // lấy tên file từ URL
+                    const fileUrl = isFileObject
+                      ? URL.createObjectURL(file)
+                      : file; // nếu là URL thì dùng trực tiếp
+
+                    return (
+                      <li
+                        key={index}
+                        className="flex justify-between items-center border p-2 rounded bg-gray-50"
+                      >
+                        {/* Tên file có thể bấm */}
+                        <a
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="truncate max-w-[70%] text-blue-600 hover:underline"
+                          title={fileName}
+                        >
+                          {fileName}
+                        </a>
+
+                        <div className="flex items-center space-x-2">
+                          {/* Nút xem (mở tab mới) */}
+                          <button
+                            type="button"
+                            onClick={() => window.open(fileUrl, "_blank")}
+                            className="text-blue-600 hover:underline"
+                          >
+                            Xem
+                          </button>
+
+                          {/* Nút xóa */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedFiles = formData.files.filter((_, i) => i !== index);
+                              setFormData({ ...formData, files: updatedFiles });
+                            }}
+                            className="text-red-600 hover:underline"
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
 
           {/* --- thanh toán --- */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium mb-4">💰 Thanh toán & trạng thái</h2>
             <div className="grid grid-cols-2 gap-4">
+              {/* Giá trị hợp đồng */}
               <div>
                 <label className="block mb-1">Giá trị hợp đồng</label>
                 <input
@@ -462,6 +577,8 @@ export default function AddOrder() {
                   className="w-full border px-3 py-2 rounded"
                 />
               </div>
+
+              {/* Trạng thái thanh toán */}
               <div>
                 <label className="block mb-1">Trạng thái thanh toán</label>
                 <select
@@ -475,6 +592,8 @@ export default function AddOrder() {
                   <option value="Thanh toán 1 phần">Thanh toán 1 phần</option>
                 </select>
               </div>
+
+              {/* Đã thanh toán (nếu thanh toán 1 phần) */}
               {formData.paymentStatus === "Thanh toán 1 phần" && (
                 <div>
                   <label className="block mb-1">Đã thanh toán</label>
@@ -490,6 +609,8 @@ export default function AddOrder() {
                   />
                 </div>
               )}
+
+              {/* Trạng thái đơn hàng */}
               <div>
                 <label className="block mb-1">Trạng thái đơn hàng</label>
                 <select
@@ -504,8 +625,23 @@ export default function AddOrder() {
                   <option value="Hủy">Hủy</option>
                 </select>
               </div>
+
+              {/* ✅ Trạng thái xuất hóa đơn */}
+              <div>
+                <label className="block mb-1">Trạng thái xuất hóa đơn</label>
+                <select
+                  name="issued"
+                  value={formData.issued}
+                  onChange={handleChange}
+                  className="w-full border px-3 py-2 rounded"
+                >
+                  <option value={false}>Chưa xuất</option>
+                  <option value={true}>Đã xuất</option>
+                </select>
+              </div>
             </div>
           </div>
+
 
           <div className="flex justify-end gap-2">
             <button type="button" className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={() => navigate(-1)} > Hủy </button>
