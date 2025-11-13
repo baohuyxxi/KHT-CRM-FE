@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { createCustomer, getCustomerById, updateCustomer } from "~/services/customerAPI";
+import { uploadImages } from "~/services/uploadAPI";
 
 export default function AddCustomer() {
     const [citizenIdError, setCitizenIdError] = useState(false);
@@ -10,6 +11,8 @@ export default function AddCustomer() {
     const [mode, setMode] = useState("add"); // 'add' hoặc 'edit'
     const { id } = useParams();
     const location = useLocation();
+    const [previewFront, setPreviewFront] = useState("");
+    const [previewBack, setPreviewBack] = useState("");
 
     const [formData, setFormData] = useState({
         owner: "",
@@ -22,11 +25,27 @@ export default function AddCustomer() {
         phone: "",
         email: "",
         customerType: "",
-        active: true
+        active: true,
+        frontCitizenId: null,
+        backCitizenId: null,
     });
 
     const [loading, setLoading] = useState(false);
     const [toast, setToast] = useState("");
+
+    // 🔹 Upload ảnh mặt trước / mặt sau
+    const handleImageChange = (e, field) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFormData((prev) => ({ ...prev, [field]: file }));
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (field === "frontCitizenId") setPreviewFront(reader.result);
+                else setPreviewBack(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const fetchCustomerById = async (id) => {
         try {
@@ -47,6 +66,8 @@ export default function AddCustomer() {
                     customerType: customer.customerType || "",
                     active: customer.active || true
                 });
+                setPreviewFront(customer.frontCitizenId || "");
+                setPreviewBack(customer.backCitizenId || "");
             }
         } catch (error) {
             console.error("Error fetching customer:", error);
@@ -67,22 +88,6 @@ export default function AddCustomer() {
             setNameUser(user.name);
         }
     }, []);
-
-    // CCCD chỉ nhập số + tối đa 13
-    const handleCitizenIdChange = (e) => {
-        const value = e.target.value.replace(/\D/g, "");
-        if (value.length <= 13) {
-            setFormData({ ...formData, citizenId: value });
-        }
-    };
-
-    const handleCitizenIdBlur = () => {
-        if (formData.citizenId && formData.citizenId.length > 8 && formData.citizenId.length < 13) {
-            setCitizenIdError(false);
-        } else {
-            setCitizenIdError(true);
-        }
-    };
 
     // Check email
     const handleEmailBlur = () => {
@@ -107,8 +112,29 @@ export default function AddCustomer() {
         setLoading(true);
         setToast("");
         try {
+            let formDataToSend = { ...formData };
+            // 🔹 Nếu có ảnh => upload
+            if (formData.frontCitizenId || formData.backCitizenId) {
+                const uploadImage = new FormData();
+                if (formData.frontCitizenId) uploadImage.append("files", formData.frontCitizenId);
+                if (formData.backCitizenId) uploadImage.append("files", formData.backCitizenId);
+
+                const resUpload = await uploadImages(uploadImage);
+
+                if (resUpload?.data?.data?.length) {
+                    // Gán link URL đã upload
+                    if (formData.frontCitizenId) {
+                        formDataToSend.frontCitizenId = resUpload.data.data[0]?.url || "";
+                    } else if (formData.backCitizenId) {
+                        formDataToSend.backCitizenId = resUpload.data.data[0]?.url || "";
+                    } else {
+                        formDataToSend.frontCitizenId = resUpload.data.data[0]?.url || "";
+                        formDataToSend.backCitizenId = resUpload.data.data[1]?.url || "";
+                    }
+                }
+            }
             if (mode === "add") {
-                const res = await createCustomer(formData);
+                const res = await createCustomer(formDataToSend);
                 if (res && res.data && res.data.success) {
                     setToast("Khách hàng đã được thêm thành công!");
                     setFormData({
@@ -122,13 +148,17 @@ export default function AddCustomer() {
                         phone: "",
                         email: "",
                         customerType: "",
-                        active: true
+                        active: true,
+                        frontImage: null,
+                        backImage: null,
                     });
+                    setPreviewFront(null);
+                    setPreviewBack(null);
                 } else {
                     setToast("Thêm khách hàng thất bại, vui lòng thử lại!");
                 }
             } else {
-                const res = await updateCustomer(id, formData);
+                const res = await updateCustomer(id, formDataToSend);
                 if (res && res.data && res.data.success) {
                     setToast("Khách hàng đã được cập nhật thành công!");
                     setTimeout(() => navigate(-1), 500);
@@ -216,6 +246,22 @@ export default function AddCustomer() {
                     />
                 </div>
 
+                {/* Phân loại khách hàng */}
+                <div>
+                    <label className="block mb-1 font-medium">Loại khách hàng<span className="text-red-500">*</span></label>
+                    <select
+                        name="customerType"
+                        value={formData.customerType}
+                        onChange={handleChange}
+                        className="w-full border rounded-md p-2"
+                    >
+                        <option value="">-- Chọn loại --</option>
+                        <option value="Thị trường">Thị trường</option>
+                        <option value="Tiềm năng">Tiềm năng</option>
+                        <option value="Đã là khách hàng">Đã là khách hàng</option>
+                    </select>
+                </div>
+
                 {/* CCCD (ko bắt buộc) */}
                 <div>
                     <label className="block mb-1 font-medium">Số CCCD (tùy chọn)</label>
@@ -249,22 +295,43 @@ export default function AddCustomer() {
                         </p>
                     )}
                 </div>
-
-                {/* Phân loại khách hàng */}
+                {/* Ảnh mặt trước CCCD */}
                 <div>
-                    <label className="block mb-1 font-medium">Loại khách hàng<span className="text-red-500">*</span></label>
-                    <select
-                        name="customerType"
-                        value={formData.customerType}
-                        onChange={handleChange}
+                    <label className="block mb-1 font-medium">Ảnh mặt trước CCCD</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageChange(e, "frontCitizenId")}
                         className="w-full border rounded-md p-2"
-                    >
-                        <option value="">-- Chọn loại --</option>
-                        <option value="Thị trường">Thị trường</option>
-                        <option value="Tiềm năng">Tiềm năng</option>
-                        <option value="Đã là khách hàng">Đã là khách hàng</option>
-                    </select>
+                    />
+                    {previewFront && (
+                        <img
+                            src={previewFront}
+                            alt="Mặt trước CCCD"
+                            className="mt-2 w-40 h-28 object-cover border rounded-md"
+                        />
+                    )}
                 </div>
+
+                {/* Ảnh mặt sau CCCD */}
+                <div>
+                    <label className="block mb-1 font-medium">Ảnh mặt sau CCCD</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageChange(e, "backCitizenId")}
+                        className="w-full border rounded-md p-2"
+                    />
+                    {previewBack && (
+                        <img
+                            src={previewBack}
+                            alt="Mặt sau CCCD"
+                            className="mt-2 w-40 h-28 object-cover border rounded-md"
+                        />
+                    )}
+                </div>
+
+
 
                 {/* Giới tính + Ngày sinh (tùy chọn) */}
                 <div>

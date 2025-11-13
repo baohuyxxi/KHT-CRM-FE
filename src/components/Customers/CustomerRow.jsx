@@ -21,6 +21,9 @@ export default function CustomerRow({ c, index, startIndex, handleEdit }) {
         setToast({ message, type });
         setTimeout(() => setToast(null), 3000); // auto hide sau 3s
     };
+    const [showDialog, setShowDialog] = useState(false);
+
+    const hasImages = c.frontCitizenId && c.backCitizenId;
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -65,8 +68,12 @@ export default function CustomerRow({ c, index, startIndex, handleEdit }) {
                     {c.cusId}
                 </td>
 
-                {/* CCCD */}
-                <td className="p-2 border truncate" title={c.citizenId}>
+                {/* CỘT CCCD */}
+                <td
+                    className={`p-2 border truncate ${hasImages ? "text-blue-600 cursor-pointer underline" : ""}`}
+                    title={hasImages ? "Xem hình CCCD" : c.citizenId}
+                    onClick={() => hasImages && setShowDialog(true)}
+                >
                     {c.citizenId || "-"}
                 </td>
 
@@ -208,7 +215,7 @@ export default function CustomerRow({ c, index, startIndex, handleEdit }) {
                     onClose={() => setDeleteDialogOpen(false)}
                 />
             )}
-            </>
+        </>
 
             {/* Gắn modal */}
             {toast && <Toast message={toast.message} type={toast.type} />}
@@ -219,7 +226,49 @@ export default function CustomerRow({ c, index, startIndex, handleEdit }) {
                     onClose={() => setOpen(false)}
                 />
             )}
-            
+            {/* DIALOG XEM HÌNH CCCD */}
+            {showDialog && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                    onClick={() => setShowDialog(false)} // click nền đen để đóng
+                >
+                    <div
+                        className="bg-white rounded-lg p-4 max-w-2xl w-full relative"
+                        onClick={(e) => e.stopPropagation()} // ngăn đóng khi click vào dialog
+                    >
+                        <button
+                            onClick={() => setShowDialog(false)}
+                            className="absolute top-2 right-2 text-gray-500 hover:text-black"
+                        >
+                            ✖
+                        </button>
+
+                        <h3 className="text-lg font-semibold mb-4 text-center">
+                            Hình ảnh Căn cước công dân
+                        </h3>
+
+                        <div className="flex gap-4 justify-center">
+                            <div className="flex flex-col items-center">
+                                <p className="text-sm text-gray-500 mb-1">Mặt trước</p>
+                                <img
+                                    src={c.frontCitizenId}
+                                    alt="CCCD mặt trước"
+                                    className="w-64 h-40 object-cover border rounded"
+                                />
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <p className="text-sm text-gray-500 mb-1">Mặt sau</p>
+                                <img
+                                    src={c.backCitizenId}
+                                    alt="CCCD mặt sau"
+                                    className="w-64 h-40 object-cover border rounded"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </>
     );
 }

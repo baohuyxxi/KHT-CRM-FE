@@ -1,14 +1,71 @@
 import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { getCounterInvoice, saveInvoice } from "~/services/counterAPI";
+import { uploadPDF } from "~/services/uploadAPI";
 
-export default function InvoiceDialog({ open, onClose, customer, orders = [] }) {
+export default function InvoiceDialog({ open, onClose, customer, orders = [], setOrders, reloadOrders }) {
     const printRef = useRef(null);
 
     // ✅ State hóa đơn (dùng để chỉnh sửa tạm thời trong dialog)
     const [invoiceData, setInvoiceData] = useState({
-        customer: customer || { name: "", taxId: "", address: "", phone: "" },
+        customer: customer || { cusId: "", name: "", taxId: "", address: "", phone: "" },
         items: [],
+        invoiceCode: "",
     });
+    const [uploadModalOpen, setUploadModalOpen] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    const handleFileChange = (e) => {
+        if (e.target.files.length > 0) setSelectedFile(e.target.files[0]);
+    };
+
+    const handleUpload = async () => {
+        if (!selectedFile) {
+            alert("Vui lòng chọn file PDF để tải lên!");
+            return;
+        }
+        const now = new Date();
+        const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // 20251113
+        const timePart = now
+            .toTimeString()
+            .split(' ')[0]
+            .replace(/:/g, ''); // 093522  (09:35:22)
+
+        const dateTimeStr = `${datePart}_${timePart}`; // 20251113_093522
+
+        const uploadInfo = {
+            fileName: invoiceData.invoiceCode
+                ? `${invoiceData.invoiceCode}_${dateTimeStr}`
+                : `Invoice_${dateTimeStr}`,
+        };
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("uploadFileDto", JSON.stringify(uploadInfo));
+        try {
+            const res = await uploadPDF(formData);
+            const pdfUrl = res.data?.data?.url;
+            if (!pdfUrl) throw new Error("Không nhận được URL từ server.");
+            const ordIds = orders.map(o => o.ordId);
+            // Lưu URL hóa đơn vào hệ thống
+            await saveInvoice(invoiceData.customer.cusId, {
+                invoiceCode: invoiceData.invoiceCode
+                    ? `${invoiceData.invoiceCode}_${dateTimeStr}`
+                    : `Invoice_${dateTimeStr}`,
+                file: pdfUrl,
+                ordIds: ordIds,
+            }
+            );
+            setOrders((orders) => orders.map(o => ordIds.includes(o.ordId) ? { ...o, issued: true } : o));
+            reloadOrders();
+            alert("✅ Hóa đơn đã được upload thành công!");
+            setUploadModalOpen(false);
+            setSelectedFile(null);
+        } catch (error) {
+            console.error("❌ Lỗi upload:", error);
+            alert("Upload thất bại. Vui lòng thử lại!");
+        }
+    };
 
     function convertNumberToWords(number) {
         if (number === 0) return "Không";
@@ -51,12 +108,28 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
         return parts.join(" ").replace(/\s+/g, " ").trim();
     }
 
+    const getCodeInvoice = async () => {
+        try {
+            const res = await getCounterInvoice();
+            if (res && res.data && res.data.success) {
+                setInvoiceData((prev) => ({
+                    ...prev,
+                    invoiceCode: res.data.data || "",
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to get invoice code:", error);
+        }
+    }
+
     // ✅ Cập nhật khi props thay đổi
     useEffect(() => {
+        getCodeInvoice();
         if (open) {
             setInvoiceData({
                 customer: customer || { name: "", taxId: "", address: "", phone: "" },
                 items: orders.map((o) => ({
+                    ordId: o.ordId || "",
                     name: o.name || o.productName || "Chưa đặt tên",
                     unit: o.unit || "Cái",
                     qty: o.qty || 1,
@@ -91,7 +164,32 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
     };
 
     // ✅ In
-    const handlePrint = () => (window.print(), localStorage.removeItem('orders'));
+    const handlePrint = () => {
+        if (printRef.current) {
+            const oldTitle = document.title;
+            const now = new Date();
+            const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // 20251113
+            const timePart = now
+                .toTimeString()
+                .split(' ')[0]
+                .replace(/:/g, ''); // 093522  (09:35:22)
+
+            const dateTimeStr = `${datePart}_${timePart}`; // 20251113_093522
+            document.title = invoiceData.invoiceCode
+                ? `${invoiceData.invoiceCode}_${dateTimeStr}`
+                : `Invoice_${dateTimeStr}`
+
+            window.print();
+
+            document.title = oldTitle; // reset lại title
+            localStorage.removeItem('orders');
+
+            setTimeout(() => {
+                onClose(false);
+                setUploadModalOpen(true);
+            }, 500);
+        }
+    }
 
     const total = invoiceData.items.reduce(
         (sum, item) => sum + item.qty * item.price,
@@ -128,7 +226,7 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
     }
   }
 `}</style>
-<style>{`
+            <style>{`
   @media print {
     body * { visibility: hidden; }
     .print-area, .print-area * { visibility: visible; }
@@ -286,37 +384,33 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
                                             <p><strong>STK:</strong> 39791368 Ngân Hàng Quân đội - MBBank Chi nhánh Bến Tre</p>
                                         </div>
 
-                                        {/* CỘT PHẢI - SẢN PHẨM / DỊCH VỤ */}
-<div
-  className="w-[38%] text-left leading-snug"
-  style={{ whiteSpace: "nowrap" }}
->
-  {/* TIÊU ĐỀ CHUYÊN CUNG CẤP */}
-  <p className="font-bold underline text-center mb-1 justify-start">CHUYÊN CUNG CẤP:</p>
+                                        <div
+                                            class="w-[38%] text-left leading-snug"
+                                            style={{ whiteSpace: "nowrap" }}
+                                        >
+                                            <p className="font-bold underline text-center mb-1">CHUYÊN CUNG CẤP:</p>
 
-  {/* HAI CỘT NỘI DUNG */}
-  <div className="flex justify-between flex-nowrap">
-    {/* SẢN PHẨM */}
-    <div style={{ marginRight: "20px" }}>
-      <p className="font-bold underline mb-1">SẢN PHẨM:</p>
-      <p>- Phần mềm giải pháp CNTT</p>
-      <p>- Tư vấn kế toán dịch vụ</p>
-    </div>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 10px' }}>
+                                                <div>
+                                                    <p className="font-bold underline mb-1">SẢN PHẨM:</p>
+                                                    <p>- Phần mềm giải pháp CNTT</p>
+                                                    <p>- Tư vấn kế toán dịch vụ</p>
+                                                </div>
 
-    {/* DỊCH VỤ */}
-    <div>
-      <p className="font-bold underline mb-1">DỊCH VỤ:</p>
-      <p>- Tư vấn ĐK, Thành lập DN</p>
-      <p>- Bảo hộ thương hiệu</p>
-    </div>
-  </div>
-</div>
+                                                <div>
+                                                    <p className="font-bold underline mb-1">DỊCH VỤ:</p>
+                                                    <p>- Tư vấn ĐK, Thành lập DN</p>
+                                                    <p>- Bảo hộ thương hiệu</p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <hr className="my-2 border-black" />
 
                                     <div className="text-center">
                                         <h2 className="text-xl font-bold underline">ĐƠN HÀNG</h2>
+                                        <h2 className="text-xl font-bold ">Số HĐ: {invoiceData.invoiceCode}</h2>
                                     </div>
                                 </div>
 
@@ -370,19 +464,24 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
                                     <strong>Tổng cộng (bằng chữ):</strong>{" "}
                                     {convertNumberToWords(total)} đồng
                                 </p>
+                                <div className="grid grid-cols-1 text-right mt-1">
+                                    <div>
+                                        <p className="italic">..........., ngày......tháng......năm 20....</p>
+                                    </div>
+                                </div>
 
                                 {/* CHỮ KÝ */}
-                                <div className="grid grid-cols-3 text-center mt-10">
+                                <div className="grid grid-cols-3 text-center mt-1">
                                     <div>
                                         <p className="font-semibold">Người mua hàng</p>
                                         <p className="italic">(Ký, ghi rõ họ tên)</p>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">Người bán hàng</p>
+                                        <p className="font-semibold">Thủ trưởng đơn vị</p>
                                         <p className="italic">(Ký, ghi rõ họ tên)</p>
                                     </div>
                                     <div>
-                                        <p className="font-semibold">Thủ trưởng đơn vị</p>
+                                        <p className="font-semibold">Người bán hàng</p>
                                         <p className="italic">(Ký, ghi rõ họ tên)</p>
                                     </div>
                                 </div>
@@ -390,6 +489,12 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
 
                             {/* Footer */}
                             <div className="mt-4 flex justify-end gap-3 print:hidden">
+                                {/* <button
+                                    onClick={handleSave}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded"
+                                >
+                                    🖨️ Lưu
+                                </button> */}
                                 <button
                                     onClick={handlePrint}
                                     className="px-4 py-2 bg-blue-600 text-white rounded"
@@ -407,6 +512,56 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [] }) 
                     </div>
                 </Dialog>
             </Transition>
+            {/* Modal upload */}
+            {uploadModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md md:max-w-lg p-6 md:p-8 relative">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setUploadModalOpen(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                        >
+                            ✕
+                        </button>
+
+                        {/* Header */}
+                        <h2 className="text-2xl font-bold mb-4 text-gray-800">TẢI LÊN HÓA ĐƠN</h2>
+                        <p className="text-sm text-gray-500 mb-6">
+                            Chọn file PDF hóa đơn bạn đã lưu để upload lên hệ thống.
+                        </p>
+
+                        {/* Input file */}
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors">
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleFileChange}
+                                className="w-full h-12 opacity-0 cursor-pointer"
+                            />
+                            <p className="text-gray-500 text-sm mt-2">Nhấp vào đây hoặc kéo thả file PDF</p>
+                            {selectedFile && (
+                                <p className="mt-2 text-green-600 font-medium truncate">{selectedFile.name}</p>
+                            )}
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                onClick={handleUpload}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                Tải lên
+                            </button>
+                            <button
+                                onClick={() => setUploadModalOpen(false)}
+                                className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+                            >
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
