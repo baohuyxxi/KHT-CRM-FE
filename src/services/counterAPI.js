@@ -5,7 +5,6 @@ export const getCounterInvoice = () => {
 }
 
 export const saveInvoice = (cusId, invoicePayload) => {
-    console.log("with payload:", invoicePayload);
     return api.post(`/customers/invoices/${cusId}/${invoicePayload.invoiceCode}`, invoicePayload);
 }
 

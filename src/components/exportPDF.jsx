@@ -2,6 +2,7 @@ import { Fragment, useRef, useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { getCounterInvoice, saveInvoice } from "~/services/counterAPI";
 import { uploadPDF } from "~/services/uploadAPI";
+import Toast from "./Toast";
 
 export default function InvoiceDialog({ open, onClose, customer, orders = [], setOrders, reloadOrders }) {
     const printRef = useRef(null);
@@ -14,6 +15,13 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [], se
     });
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [toast, setToast] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000); // auto hide sau 3s
+    };
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) setSelectedFile(e.target.files[0]);
@@ -21,9 +29,10 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [], se
 
     const handleUpload = async () => {
         if (!selectedFile) {
-            alert("Vui lòng chọn file PDF để tải lên!");
+            showToast("Vui lòng chọn file PDF để tải lên!", "error");
             return;
         }
+
         const now = new Date();
         const datePart = now.toISOString().slice(0, 10).replace(/-/g, ''); // 20251113
         const timePart = now
@@ -43,6 +52,7 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [], se
         formData.append("file", selectedFile);
         formData.append("uploadFileDto", JSON.stringify(uploadInfo));
         try {
+            setLoading(true);
             const res = await uploadPDF(formData);
             const pdfUrl = res.data?.data?.url;
             if (!pdfUrl) throw new Error("Không nhận được URL từ server.");
@@ -58,12 +68,12 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [], se
             );
             setOrders((orders) => orders.map(o => ordIds.includes(o.ordId) ? { ...o, issued: true } : o));
             reloadOrders();
-            alert("✅ Hóa đơn đã được upload thành công!");
             setUploadModalOpen(false);
             setSelectedFile(null);
+            showToast("✅ Upload hóa đơn thành công!", "success");
         } catch (error) {
-            console.error("❌ Lỗi upload:", error);
-            alert("Upload thất bại. Vui lòng thử lại!");
+            setLoading(false);
+            showToast("Upload thất bại. Vui lòng thử lại!", "error");
         }
     };
 
@@ -560,8 +570,58 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [], se
                             </button>
                         </div>
                     </div>
+                    {loading && (
+                        <div className="overlay">
+                            <style>
+                                {`
+                .overlay {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(0,0,0,0.3);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .loading-box {
+                    background: #fff;
+                    padding: 14px 20px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                }
+
+                .spinner {
+                    width: 28px;
+                    height: 28px;
+                    border: 4px solid #ddd;
+                    border-top-color: #3498db;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                }
+
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}
+                            </style>
+
+                            <div className="loading-box">
+                                <div className="spinner"></div>
+                                <span>Đang tải lên...</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
+            {/* Toast */}
+            {
+                toast && (
+                    <Toast message={toast.message} type={toast.type} />
+                )
+            }
         </>
     );
 }
