@@ -1,5 +1,5 @@
 import React, { useState, lazy, Suspense } from "react";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardHeader from "./DashboardHeader";
 import { getAccessibleRoutes } from "~/utils/routes";
@@ -28,11 +28,14 @@ export default function DashboardLayout() {
 
   // 🔑 Giả sử lấy role từ localStorage (bạn thay bằng context hoặc redux)
   const user = useSelector((state) => state.auth.user);
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   const role = user?.role || "staff";
 
   // Lấy routes theo role (bao gồm cả showInSidebar=false như /account)
-  const accessibleRoutes = getAccessibleRoutes(user.permissions);
+  const accessibleRoutes = getAccessibleRoutes(user?.permissions);
 
   // Map path -> component (tạm hardcode, bạn có thể import động)
   const componentMap = {
