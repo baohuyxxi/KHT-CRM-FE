@@ -6,7 +6,7 @@ import * as Icons from "react-icons/md";
 import { getFunctionSidebar } from "~/utils/routes";
 
 export default function DashboardSidebar({ isOpen, setIsOpen, user }) {
-  const accessibleRoutes = getFunctionSidebar(user.permissions);
+  const accessibleRoutes = getFunctionSidebar(user?.permissions);
   const [collapsed, setCollapsed] = useState(false);
 
   return (
