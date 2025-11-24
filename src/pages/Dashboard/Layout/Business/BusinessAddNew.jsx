@@ -29,6 +29,8 @@ export default function BusinessForm() {
     representativeName: "",
     active: true,
     cusId: null,
+    stamp: [],
+    notes: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -128,31 +130,27 @@ export default function BusinessForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-    let newValue = type === "checkbox" ? checked : type === "file" ? files[0] : value;
 
-    // Nếu là tên doanh nghiệp, lưu luôn chữ hoa
+    let newValue = value;
+
+    if (type === "checkbox") {
+      newValue = checked;
+    }
+
+    if (type === "file") {
+      const newFiles = Array.from(files); // list file mới
+
+      newValue = [...(formData.stamp || []), ...newFiles]; // giữ file cũ + mới
+    }
+
     if (name === "name") {
       newValue = newValue.toUpperCase();
     }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: newValue
+      [name]: newValue,
     }));
-
-    // Realtime validate
-    if (name === "name") {
-      setErrors((prev) => ({
-        ...prev,
-        name: newValue.trim() ? "" : "Tên doanh nghiệp là bắt buộc",
-      }));
-    }
-    if (name === "address") {
-      setErrors((prev) => ({
-        ...prev,
-        address: newValue.trim() ? "" : "Địa chỉ là bắt buộc",
-      }));
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -174,60 +172,134 @@ export default function BusinessForm() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
+
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">
+        <h1 className="text-3xl font-bold text-gray-800">
           {id ? "Chỉnh sửa doanh nghiệp" : "Thêm doanh nghiệp"}
         </h1>
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
         >
           Quay lại
         </button>
       </div>
 
-      <div className="space-y-6">
-        {/* Thông tin người quản lý */}
-        <ManagerInfo formData={formData} handleChange={handleChange} />
+      <form onSubmit={handleSubmit} className="space-y-8">
 
-        {/* Thông tin doanh nghiệp */}
-        <BusinessInfo
-          formData={formData}
-          errors={errors}
-          handleChange={handleChange}
-        />
+        {/* Người quản lý */}
+        <div className="bg-white rounded-xl border shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-700">Thông tin người quản lý</h2>
 
-        {/* Toggle thông tin người đại diện */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showRepresentative}
-            onChange={(e) => setShowRepresentative(e.target.checked)}
-          />
-          <span>Thêm thông tin người đại diện</span>
+          <ManagerInfo formData={formData} handleChange={handleChange} />
         </div>
 
-        {/* Thông tin người đại diện */}
-        <RepresentativeInfo
-          show={showRepresentative}
-          formData={formData}
-          cusIdInput={cusIdInput}
-          setCusIdInput={setCusIdInput}
-          fetchCustomer={fetchCustomer}
-          handleChange={handleChange}
-          errors={errors}
-        />
+        {/* Doanh nghiệp */}
+        <div className="bg-white rounded-xl border shadow-sm p-6">
+          <h2 className="text-xl font-semibold mb-4 text-gray-700">Thông tin doanh nghiệp</h2>
+
+          <BusinessInfo
+            formData={formData}
+            errors={errors}
+            handleChange={handleChange}
+          />
+        </div>
+
+        {/* Upload file */}
+        <div className="bg-white rounded-xl border shadow-sm p-6 space-y-4">
+          <h2 className="text-xl font-semibold text-gray-700">Con dấu/chữ ký</h2>
+
+          {/* Upload box */}
+          <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition">
+            <div className="text-gray-500 text-sm">Nhấn để chọn hoặc kéo thả file</div>
+            <input
+              type="file"
+              accept="image/*"
+              name="stamp"
+              multiple
+              onChange={handleChange}
+              className="hidden"
+            />
+          </label>
+
+          {Array.isArray(formData.stamp) && formData.stamp.length > 0 && (
+            <div className="space-y-2">
+              {formData.stamp.map((file, index) => (
+                <div key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg text-sm">
+
+                  <span className="truncate w-3/4">
+                    {file.name || file}
+                    {/* nếu là file object => file.name, nếu là URL string => file */}
+                  </span>
+
+                  <button
+                    type="button"
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        stamp: prev.stamp.filter((_, i) => i !== index),
+                      }))
+                    }
+                  >
+                    Xoá
+                  </button>
+
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Ghi chú */}
+          <div>
+            <label className="font-medium text-gray-700">Ghi chú</label>
+            <textarea
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Nhập ghi chú..."
+              className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Toggle */}
+        <div className="bg-white rounded-xl border shadow-sm p-6">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showRepresentative}
+              onChange={(e) => setShowRepresentative(e.target.checked)}
+            />
+            <span className="text-gray-700 font-medium">Thêm thông tin người đại diện</span>
+          </div>
+
+          {/* Representative */}
+          <RepresentativeInfo
+            show={showRepresentative}
+            formData={formData}
+            cusIdInput={cusIdInput}
+            setCusIdInput={setCusIdInput}
+            fetchCustomer={fetchCustomer}
+            handleChange={handleChange}
+            errors={errors}
+          />
+        </div>
 
         {/* Action buttons */}
-        <FormActions
-          id={id}
-          handleSubmit={handleSubmit}
-          navigate={navigate}
-        />
-      </div>
+        <div className="bg-white rounded-xl border shadow-sm p-6">
+          <FormActions
+            id={id}
+            handleSubmit={handleSubmit}
+            navigate={navigate}
+          />
+        </div>
+
+      </form>
     </div>
   );
+
 }
