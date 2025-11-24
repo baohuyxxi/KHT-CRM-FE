@@ -6,6 +6,7 @@ import UploadGPKD from "~/components/Business/UploadGPKD";
 import Toast from "~/components/Toast";
 import ConfirmDeleteDialog from "~/components/Business/ConfirmDeleteDialog";
 import PaginationUI from "~/components/Pagination";
+import StampModal from "~/components/Business/StampModal";
 
 export default function BusinessList() {
   const navigate = useNavigate();
@@ -14,6 +15,13 @@ export default function BusinessList() {
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000); // auto hide sau 3s
+  };
+  const [openStamp, setOpenStamp] = useState(false);
+  const [currentBusiness, setCurrentBusiness] = useState(null);
+
+  const openStampModal = (business) => {
+    setCurrentBusiness(business);
+    setOpenStamp(true);
   };
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -124,7 +132,11 @@ export default function BusinessList() {
                     )}
                   </div>
                 </td>
-                <td className="p-2 border truncate max-w-[250px]" title={b.name}>
+                <td
+                  className="p-2 border truncate max-w-[250px] text-blue-600 hover:underline cursor-pointer"
+                  title={b.name}
+                  onClick={() => openStampModal(b)}
+                >
                   {b.name}
                 </td>
                 <td className="p-2 border truncate max-w-[200px]" title={b.cusInfo?.lastName}>
@@ -174,6 +186,12 @@ export default function BusinessList() {
           item={selectedBus}
           onConfirm={handleConfirmDelete}
           onClose={() => setDeleteDialogOpen(false)}
+        />
+      )}
+      {openStamp && (
+        <StampModal
+          business={currentBusiness}
+          onClose={() => setOpenStamp(false)}
         />
       )}
 

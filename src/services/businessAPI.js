@@ -1,5 +1,5 @@
 import api from "./api";
-import { uploadPDF } from "./uploadAPI";
+import { uploadImages, uploadPDF } from "./uploadAPI";
 
 export const createBusiness = async (data) => {
     if (data.licenseFile) {
@@ -12,6 +12,18 @@ export const createBusiness = async (data) => {
 
         const res = await uploadPDF(formData);
         data.licenseFile = res.data.data.url;
+    }
+    if (data.stamp && data.stamp?.length > 0) {
+        const stampUrls = [];
+        const formData = new FormData();
+        for (let i = 0; i < data.stamp.length; i++) {
+            formData.append('files', data.stamp[i]);
+        }
+        const res = await uploadImages(formData);
+        for (let i = 0; i < res.data.data.length; i++) {
+            stampUrls.push(res.data.data[i].url);
+        }
+        data.stamp = stampUrls;
     }
     return api.post('/businesses/add', data);
 }
@@ -35,6 +47,23 @@ export const updateBusiness = async (id, data) => {
 
         const res = await uploadPDF(formData);
         data.licenseFile = res.data.data.url;
+    }
+    if (data.stamp && data.stamp.length > 0) {
+        const stampUrls = [];
+        const formData = new FormData();
+        for (let i = 0; i < data.stamp.length; i++) {
+            if (data.stamp[i] instanceof File) {
+                formData.append('files', data.stamp[i]);
+
+            } else {
+                stampUrls.push(data.stamp[i]);
+            }
+        }
+        const res = await uploadImages(formData);
+        for (let i = 0; i < res.data.data.length; i++) {
+            stampUrls.push(res.data.data[i].url);
+        }
+        data.stamp = stampUrls;
     }
     return api.put(`/businesses/update/${id}`, data);
 }

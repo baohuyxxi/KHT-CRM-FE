@@ -476,7 +476,7 @@ export default function InvoiceDialog({ open, onClose, customer, orders = [], se
                                 </p>
                                 <div className="grid grid-cols-1 text-right mt-1">
                                     <div>
-                                        <p className="italic">..........., ngày......tháng......năm 20....</p>
+                                        <p className="italic">Vĩnh Long, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm {new Date().getFullYear()}</p>
                                     </div>
                                 </div>
 
