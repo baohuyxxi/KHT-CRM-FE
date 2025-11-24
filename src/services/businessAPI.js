@@ -48,7 +48,7 @@ export const updateBusiness = async (id, data) => {
         const res = await uploadPDF(formData);
         data.licenseFile = res.data.data.url;
     }
-    if (data.stamp && data.stamp.length > 0) {
+    if (data.stamp && data.stamp?.length > 0) {
         const stampUrls = [];
         const formData = new FormData();
         for (let i = 0; i < data.stamp.length; i++) {
@@ -59,9 +59,11 @@ export const updateBusiness = async (id, data) => {
                 stampUrls.push(data.stamp[i]);
             }
         }
-        const res = await uploadImages(formData);
-        for (let i = 0; i < res.data.data.length; i++) {
-            stampUrls.push(res.data.data[i].url);
+        if (formData.getAll('files').length > 0) {
+            const res = await uploadImages(formData);
+            for (let i = 0; i < res.data.data.length; i++) {
+                stampUrls.push(res.data.data[i].url);
+            }
         }
         data.stamp = stampUrls;
     }
